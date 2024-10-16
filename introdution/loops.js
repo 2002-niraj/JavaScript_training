@@ -32,3 +32,14 @@ while(x<3){
 console.log(text2);
 
 // do while loop
+
+// for each loop 
+const arr1 = [22,10,13,14];
+arr1.forEach((Element)=>{
+    console.log(Element)
+})
+
+// array.from  used to create 
+// used to create array from any object
+const name = "niraj";
+console.log(Array.from(name));
