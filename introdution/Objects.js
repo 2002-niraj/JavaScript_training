@@ -91,3 +91,20 @@ const obj2 = { 3: "c", 4: "d" };
 
 const obj3 = { ...obj1, ...obj2 };
 console.log(obj3);
+
+// how to travel in object
+
+const person3 = {
+  firstname: "Niraj",
+  lastname: "Palmur",
+  age: 23,
+  isInten: true,
+};
+
+for(let key in person3){
+
+   if(person3.hasOwnProperty(key)){
+    value = person3[key];
+    console.log(key,value)
+   }
+}

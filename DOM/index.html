@@ -1,11 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Html DOM</title>
-</head>
-<body>
-    
-</body>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="container_heading">This is heading</h1>
+      <p>Lorem ipsum dolor sit amet.</p>
+
+       <ul>
+        <li>one </li>
+        <li>two</li>
+        <li>three</li>
+       </ul>
+    </div>
+
+    <script>
+      //Change the inner HTML of an element
+      document.getElementById("container_heading").innerHTML = "Niraj palmur";
+
+      //	Change the attribute value of an HTML element
+      document.getElementById("container_heading").id = "heading";
+
+      // Change the style of an HTML element
+      document.getElementById("heading").style.padding = "2rem";
+      document.getElementById("heading").style.textAlign = "center";
+      document.getElementById("heading").style.backgroundColor = "blue";
+
+      // Change the attribute value of an HTML element
+      document.getElementById("heading").setAttribute("class", "myheading");
+
+      const unlist = document.querySelector('ul')
+      unlist.style.listStyle = "none"
+      unlist.style.display ="flex"
+      unlist.style.gap="2rem"
+      const list1 = unlist.querySelector('li')
+      list1.style.color = "red"
+      list1.innerHTML = "link1"
+      
+
+
+    </script>
+  </body>
 </html>

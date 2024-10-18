@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create element</title>
+</head>
+<body>
+     
+      <ul class="lang">
+        <li>javascript</li>
+      </ul>
+    <script>
+        // const a = document.createElement('div')
+        // console.log(a)
+        // a.setAttribute("class","container")
+        // a.style.width = "17rem"
+        // a.style.height = "20vh"
+        // a.style.backgroundColor= "red"
+        // a.innerText = "Niraj"
+        // document.body.appendChild(a)
+
+        // const b = document.createElement('div')
+        // console.log(b)
+        //  b.setAttribute("class","container")
+        //  b.style.marginTop = "1rem"
+        //  b.style.width = "17rem"
+        //  b.style.height = "20vh"
+        //  b.style.backgroundColor= "green"
+        //  b.innerText = "palmur"
+        // document.body.appendChild(b)
+
+        function addelement(langName){
+
+            const a = document.createElement('li')
+            a.innerText = `${langName}`
+            a.style.listStyle = "none"
+            const sele = document.querySelector('.lang')
+            
+            sele.appendChild(a)
+            console.log(a)
+
+        }
+        addelement("java")
+        addelement("c++")
+        addelement("python")
+
+        // edit 
+        const editele = document.querySelector("li:nth-child(2)")
+        editele.innerHTML = "typescript"
+
+        //remove
+        const removeele = document.querySelector("li:last-child")
+        removeele.remove()
+
+    </script>
+</body>
+
+
+</html>
