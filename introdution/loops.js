@@ -23,13 +23,13 @@ const color = ["yellow","red","pink"]
 
 
 // while loop
-let text2 = "";
-let x=0
-while(x<3){
-    text2 = text2+color[x]
-    x++
-}
-console.log(text2);
+// let text2 = "";
+// let x=0
+// while(x<3){
+//     text2 = text2+color[x]
+//     x++
+// }
+// console.log(text2);
 
 // do while loop
 
@@ -43,3 +43,22 @@ arr1.forEach((Element)=>{
 // used to create array from any object
 const name = "niraj";
 console.log(Array.from(name));
+
+/*
+  for-of  is used to itrate array and string
+  for-in  is used for object 
+ */
+
+  let str = "Niraj";
+  for(let i of str){
+    console.log(i)
+  }
+
+  const person = {
+    name:"niraj",
+    age :22,
+    city:"solapur"
+  }
+  for(let i in person){
+     console.log("key:",i,"value:",person[i])
+  }

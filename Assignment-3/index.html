@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To Do List</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
 </head>
@@ -16,17 +14,34 @@
             <h1>To Do List</h1>
         </div>
         <div class="container_input">
-            <input type="text" id="inputtext" placeholder="Add a new task...">
-            <button id="addbtn"><i class="fas fa-plus"></i></button>
+            <input type="text" id="text" placeholder="Add a new task..." />
+            <select id="Categories">
+                <option value="" disabled selected>Select Categories</option>
+                <option value="work">Work</option>
+                <option value="personal">Personal</option>
+                <option value="other">Other</option>
+            </select>
+            <select id="priority">
+                <option value="" disabled selected>Select Priority</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+            <button id="addbtn"><i class="fas fa-plus"></i> Add</button>
         </div>
-        <div class="task_filters">
-            <button id="alltask">All Task</button>
-            <button id="pendingtask"> Pending Task </button>
-            <button id="completedtask"> Completed Task </button>
+        
+        <div class="active-tasks">
+            <h2>Active Tasks</h2>
+            <ul class="tasklist" id="activeTasksList"></ul>
         </div>
-        <ul class="tasklist"></ul>
+
+        <div class="completed-tasks">
+            <h2>Completed Tasks</h2>
+            <ul class="tasklist" id="completedTasksList"></ul>
+        </div>
+
         <div class="container_controls">    
-            <button id="clear-btn">Clear All</button>
+            <button id="clear-btn">Clear All Tasks</button>
         </div>
     </div>
     <script src="index.js"></script>
