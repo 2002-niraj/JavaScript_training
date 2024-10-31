@@ -38,6 +38,7 @@ html{
     flex-basis: 100%;
     padding: 10px;
     background-color: #ffff;
+    width: 100%;
 }
 
 .sidebar{
@@ -107,6 +108,20 @@ html{
     margin: 0 4.4rem;
     gap:1rem;
  } 
+
+ .step{
+    display: none;
+}
+
+.step__active{
+    display: flex;
+}
+
+.active{
+    background-color: hsl(206, 94%, 87%);
+    color:hsl(213, 96%, 18%);
+}
+
 
 
  .step__heading{
@@ -398,15 +413,153 @@ html{
 }
 
 
-.step{
+
+
+
+/* #step-1,#step-2,#step-3,#step-4{
     display: none;
+} */
+
+
+
+#step-4{
+    width: 100%;
 }
 
-.step__active{
+
+.card__container{
+
+    background-color: hsl(217, 100%, 97%);
+    border: none;
+    padding:14px;
+}
+
+.selected__plan_container{
+    padding-top: 10px;
+    padding-bottom: 20px;
+}
+
+.change__plan{
+   border: none;
+   background: transparent;
+   color:hsl(231, 11%, 63%);
+   text-decoration: underline;
+   cursor: pointer;
+}
+.change__plan:hover{
+
+    color:  hsl(243, 100%, 62%);
+}
+#selected__plan{
+
     display: flex;
+    align-items: center;
+    color: hsl(213, 96%, 18%);
+    font-weight: 700;
+    padding-bottom: 5px;
+}
+#selected__plan > p:nth-child(2){
+  margin-left: 4px;
 }
 
-.active{
-    background-color: hsl(206, 94%, 87%);
-    color:hsl(213, 96%, 18%);
+#selected__plan > p:nth-child(3){
+   
+    margin-left: auto;
 }
+
+#selected-addon > li {
+    display: flex;
+    justify-content: space-between;
+    align-self: center;
+     font-size: 1.1rem;
+    font-weight: 500;
+    padding-bottom: 14px;
+}
+
+#selected-addon > li:nth-child(1){
+    padding-top: 20px;
+}
+
+#selected-addon > li :nth-child(1){
+   color:hsl(231, 11%, 63%);
+}
+#selected-addon > li :nth-child(2){
+    color:hsl(213, 96%, 18%)
+ }
+
+ #total_amt{
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    padding-bottom: 2.8rem;
+ }
+
+ #total_amt>span:nth-child(1){
+    font-size: 0.9rem;
+    color:hsl(231, 11%, 63%);
+
+ }
+
+ #total_amt>span:nth-child(2){
+    color:hsl(243, 100%, 62%);
+    font-weight: 700;
+    
+ }
+ #step-4 .btns #nextBtn{
+
+    background-color: hsl(243, 100%, 62%)
+ }
+
+ #step-5{
+    width: 100%;
+    text-align: center;
+ }
+
+ #step-5{
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+ }
+
+ #step-5 .step__heading{
+    padding: 0;
+ }
+
+
+
+
+
+
+
+@media screen and (max-width:800px){
+
+    body{
+        position: relative;
+    }
+
+   .sidebar{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-image: url("assets/images/bg-sidebar-mobile.svg");
+    flex-direction: row;
+    height: 250px;
+    background-size: cover;
+    background-position: center;
+    width: 100%;
+    align-items: flex-start;
+    justify-content: center;
+    z-index: -1;
+
+   }
+   .step__text{
+    display: none;
+   }
+  
+}
+
