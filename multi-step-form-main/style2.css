@@ -109,18 +109,7 @@ html{
     gap:1rem;
  } 
 
- .step{
-    display: none;
-}
 
-.step__active{
-    display: flex;
-}
-
-.active{
-    background-color: hsl(206, 94%, 87%);
-    color:hsl(213, 96%, 18%);
-}
 
 
 
@@ -195,7 +184,7 @@ html{
     margin-bottom: 1rem;
     display:  flex;
     flex-wrap: wrap;
-    height: 30%;
+    height: 34%;
     gap:1.2rem;    
 }
 
@@ -209,6 +198,7 @@ html{
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 1rem;
     
 
 }
@@ -227,23 +217,17 @@ html{
   color:hsl(213,96%,18%);
 }
 
-.plan__month,.plan__year{
+.plan__month{
    color:hsl(231, 11%, 63%);
-   font-size: 13px;
+   font-size: 12px;
+   
 }
 
-.yearly-info{
-    display: none;
-}
 
-/* .plan__month{
-    display: none;
-} */
-
-.yearly-info p{
-    margin-top: 5px;
+.free{
+    
     color:hsl(213,96%,18%);
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .btns{
@@ -515,13 +499,7 @@ html{
  #step-5{
     width: 100%;
     text-align: center;
- }
-
- #step-5{
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin-top: 6rem;
  }
 
  #step-5 .step__heading{
@@ -529,7 +507,18 @@ html{
  }
 
 
+ .step{
+    display: none;
+}
 
+.step__active{
+    display: flex;
+}
+
+.active{
+    background-color: hsl(206, 94%, 87%);
+    color:hsl(213, 96%, 18%);
+}
 
 
 
