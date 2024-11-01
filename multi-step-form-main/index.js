@@ -98,7 +98,11 @@ const showStep = (x) => {
   });
 
   if(stepNum ===1){
-      showPrice();
+      showPrice(switcher.querySelector('input').checked);
+  }
+
+  if(stepNum ===2){
+    ShowMonthYear(switcher.querySelector('input').checked);
   }
 };
 
@@ -112,8 +116,11 @@ step__cards.forEach((card)=>{
      card.classList.add("active2");
      
      obj.plan = card.querySelector('.plan__name').textContent
-     let price = card.querySelector('.plan__month').textContent
-     obj.price = Number(price.slice(1,2))
+     
+     let price = card.querySelector('.plan__month').textContent;
+     price = price.match(/\d+/);
+     obj.price = Number(price[0]);
+     
 
   });
 })
@@ -146,7 +153,9 @@ function showPrice(checked){
 
       if(activeCard){
          const activeIndex = Array.from(step__cards).indexOf(activeCard);
-         obj.price = prices[activeIndex].textContent;
+         let price = prices[activeIndex].textContent;
+         price = price.match(/\d+/);
+         obj.price = Number(price[0]);
          obj.plan = plan__names[activeIndex].textContent;
          obj.status = true;
       }
@@ -162,7 +171,9 @@ function showPrice(checked){
 
       if(activeCard){
         const activeIndex = Array.from(step__cards).indexOf(activeCard);
-        obj.price = prices[activeIndex].textContent;
+        let price = prices[activeIndex].textContent;
+        price = price.match(/\d+/);
+        obj.price = Number(price[0]);
         obj.plan = plan__names[activeIndex].textContent;
         obj.status = false;
      }
@@ -172,20 +183,25 @@ function showPrice(checked){
 }
 
 const boxs = document.querySelectorAll('.box');
-let addOn = []
+function ShowMonthYear(status){
 
-// boxs.forEach((box)=>{
-     
+  if(status){
+      
+    boxs.forEach((box)=>{
+         
+      box.querySelector('.year').style.display = 'flex';
+      box.querySelector('.month').style.display = 'none'
+    })
+  }
+  else{
+    boxs.forEach((box)=>{
+         
+      box.querySelector('.year').style.display = 'none';
+      box.querySelector('.month').style.display = 'flex';
+    })
+  }
+}
 
-//     const checkbox = box.querySelectorAll('.checkbox');
-//     checkbox.addEventListener('change',()=>{
-       
-//        addOn.push({
-
-//        })
-//     })
-
-// })
  
 
 showStep(stepNum);
