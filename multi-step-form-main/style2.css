@@ -387,9 +387,9 @@ html{
     display: none;
 }
 
-/* .month{
+.month{
     display: none;
-} */
+}
 
 .selectedbox{
     background-color: hsl(231,100%,99%);

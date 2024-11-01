@@ -112,7 +112,8 @@ step__cards.forEach((card)=>{
      card.classList.add("active2");
      
      obj.plan = card.querySelector('.plan__name').textContent
-     obj.price = card.querySelector('.plan__month').textContent
+     let price = card.querySelector('.plan__month').textContent
+     obj.price = Number(price.slice(1,2))
 
   });
 })
@@ -147,6 +148,7 @@ function showPrice(checked){
          const activeIndex = Array.from(step__cards).indexOf(activeCard);
          obj.price = prices[activeIndex].textContent;
          obj.plan = plan__names[activeIndex].textContent;
+         obj.status = true;
       }
 
      }
@@ -162,11 +164,29 @@ function showPrice(checked){
         const activeIndex = Array.from(step__cards).indexOf(activeCard);
         obj.price = prices[activeIndex].textContent;
         obj.plan = plan__names[activeIndex].textContent;
+        obj.status = false;
      }
+
 
      }
 }
 
+const boxs = document.querySelectorAll('.box');
+let addOn = []
+
+// boxs.forEach((box)=>{
+     
+
+//     const checkbox = box.querySelectorAll('.checkbox');
+//     checkbox.addEventListener('change',()=>{
+       
+//        addOn.push({
+
+//        })
+//     })
+
+// })
+ 
 
 showStep(stepNum);
 
