@@ -164,6 +164,11 @@ html{
     transition: 0.25s;
 }
 
+#step-1 form input:focus{
+    outline: none;
+    border:1px solid hsl(243,100%,62%); 
+}
+
 .next-step{
     margin-top: auto;
     margin-bottom: 1rem;

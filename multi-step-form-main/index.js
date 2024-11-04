@@ -12,11 +12,12 @@ const changePlanBtn = document.querySelector("#change-plan");
 const selected_addon = document.querySelector("#selected-addon");
 const total_price = document.querySelector("#total_amt span:nth-child(2)");
 const total_text = document.querySelector("#total_amt span:nth-child(1)");
+const activeCard = document.querySelector(".active2");
 
-const obj = {
+let obj = {
   name: null,
   price: null,
-  status: null,
+  status: false,
 };
 
 let addOn = [];
@@ -42,11 +43,18 @@ function loaddata() {
     email: null,
     phone: null,
   };
+  obj = JSON.parse(localStorage.getItem("obj")) || {
+    name: null,
+    price: null,
+    status: false,
+  };
+  
   inputValueFunc(userDetails)
   showStep(stepNum);
   if(stepNum === 4){
     localStorage.removeItem("current_step");
     localStorage.removeItem("userDetails");
+    localStorage.removeItem("obj");
     stepNum = 0;
     userDetails = {
       name: null,
@@ -210,7 +218,12 @@ const showStep = (x) => {
   });
 
   if (stepNum === 1) {
+
+    if(obj.status){
+      switcher.querySelector("input").checked = true;
+    }
     showPrice(switcher.querySelector("input").checked);
+ 
   }
 
   if (stepNum === 2) {
@@ -236,6 +249,8 @@ step__cards.forEach((card) => {
     let price = card.querySelector(".plan__month").textContent;
     price = price.match(/\d+/);
     obj.price = Number(price[0]);
+
+    localStorage.setItem("obj",JSON.stringify(obj));
   });
 });
 
@@ -246,6 +261,8 @@ switcher.addEventListener("click", () => {
 
   showPrice(bool);
   obj.status = bool;
+  localStorage.setItem("obj",JSON.stringify(obj));
+
 
   if (bool) {
     document.querySelector(".yearly__plan").style.color = "#02295a";
@@ -269,7 +286,7 @@ function showPrice(checked) {
   const prices = document.querySelectorAll(".plan__month");
   const plan__names = document.querySelectorAll(".plan__name");
   const free = document.querySelectorAll(".free");
-  const activeCard = document.querySelector(".active2");
+
 
   if (checked) {
     prices[0].innerHTML = `$${yearPrice[0]}/yr`;
