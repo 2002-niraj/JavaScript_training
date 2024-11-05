@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expance tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+   
+     <main>
+        <aside class="sidebar">
+            <div class="sidebar__heading">
+                <h1>Monefy</h1>
+            </div>
+
+            <ul class="list">
+                <li> Dashborad</li>
+         <li> Add Expances <i class="fa-solid fa-plus"></i> </li>
+              <li> Expances List <i class="fa-sharp fa-solid fa-list"></i></li>
+           </ul>
+
+        </aside>
+
+         <section class="details">
+                 
+              <div class="expanceform">
+                <form>
+                    <div class="field">
+
+                      <div class="label">
+                        <label for="description">description</label>
+                      </div>
+                      <input
+                        type="text"
+                    
+                        required
+                        name="description"
+                        id="description"
+                      />
+                    </div>
+      
+                    <div class="field">
+                      <div class="label">
+                        <label for="amount">Amount</label>
+                      </div>
+                      <input
+                        type="number"
+                        required
+                        name="amount"
+                        id="amount"
+                      />
+                    </div>
+      
+                    <div class="field">
+                    <label for="date">Date</label>
+                    <input type="date" max="2024-11-06" id="date" name="date" class="date">
+  
+                       <select id="Categories">
+                          <option value="" disabled selected>Select Categories</option>
+                          <option value="Shopping">Shopping</option>
+                          <option value="travel">travel</option>
+                          <option value="other">Other</option>
+                      </select>
+                    </div>
+                  
+                     <button>Save</button>
+                  </form>
+
+              </div>
+         </section>
+
+     </main>
+</body>
+</html>

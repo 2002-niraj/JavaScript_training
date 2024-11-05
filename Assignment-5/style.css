@@ -1,0 +1,45 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: "Ubuntu", sans-serif;
+}
+
+main{
+    display: flex;
+    height: 100vh;
+    flex-basis: 100%;
+    color:#fff;
+    
+}
+main .sidebar{
+
+    background-color: black;
+    flex: 0 0 16%;
+    padding: 1.4rem;
+    height: 100%;
+    text-align: center;
+}
+
+.sidebar__heading h1{
+    font-size: 2.2rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
+
+.sidebar .list{
+    list-style: none;
+
+
+}
+
+.sidebar .list li{
+    margin-bottom: 2rem;
+    cursor: pointer;
+}
+.sidebar .list li i{
+    margin-left: 2px;
+}

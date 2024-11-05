@@ -24,7 +24,7 @@ html{
 .container{
     background-color: hsl(0, 0, 100%);
     display: flex;
-    border-radius: 10px;
+    border-radius: 7px;
     height: 84vh;
     width: 62vw;
     position: relative;
@@ -146,7 +146,6 @@ html{
     align-items: center;
     justify-content: space-between;
     color: hsl(213, 96%, 18%);
-    font-weight: 500;
     margin-bottom:5px;
 }
 
@@ -154,11 +153,15 @@ html{
     padding: 0.6rem;
     border:1px solid hsl(231, 11%, 63%);
     border-radius: 7px;
-    font-weight: 500;
+    font-weight: 700;
     width: 100%;
     color:hsl(213, 96%, 18%);
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
+#step-1 form input::placeholder{
+    font-weight: 500;
+}
+
 #step-1 form input:hover{
 	border:1px solid hsl(243,100%,62%); 
     transition: 0.25s;
@@ -195,13 +198,9 @@ html{
 
 #step-2{
     width: 100%;
-    /* display: flex;
-    gap:1.2rem; */
 }
 
  #step-2 .step__cards{
-    /* margin-top: 0.4rem; */
-    /* margin-bottom: 1rem; */
     display:  flex;
     height: 30%;
     gap:1.2rem;    
@@ -213,7 +212,6 @@ html{
     padding: 12px;
     width: 30%;
     height: 100%;
-    border-radius: 7px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -267,6 +265,11 @@ html{
     padding: 0.8rem 0;
     color:hsl(231, 11%, 63%);
     background-color: transparent;
+  }
+
+  .prev-step:hover{
+     
+      color: hsl(213, 96%, 18%);
   }
 
   .toggle{
@@ -353,10 +356,6 @@ html{
     font-weight: 500;
 }
 
-/* .monthly__plan,.yearly__plan{
-  color:hsl(231,11%,63%);
-  font-size: 14px;
-} */
 
 #step-3{
 
@@ -374,7 +373,7 @@ html{
 }
 .box{
     border: 1px solid hsl(231,11%,63%);
-    border-radius: 10px;
+    border-radius: 7px;
     padding: 14px;
     display: flex;
     align-items: center;    
@@ -405,7 +404,7 @@ html{
     color:hsl(231,11%,63%);
 }
 .box span{
-    font-size: 12px;
+    font-size: 14px;
     color:hsl(243,100%,62%);
     margin-left: auto;
 }
@@ -483,7 +482,6 @@ html{
     justify-content: space-between;
     align-self: center;
      font-size: 1rem;
-    font-weight: 500;
     padding-bottom: 12px;
 }
 
@@ -495,7 +493,7 @@ html{
    color:hsl(231, 11%, 63%);
 }
 #selected-addon > li :nth-child(2){
-    color:hsl(213, 96%, 18%)
+    color: hsl(213, 96%, 18%);
  }
 
  #total_amt{
@@ -564,7 +562,7 @@ html{
 
 
 
-@media screen and (max-width:800px){
+@media screen and (max-width:850px){
 
     body{
         position: relative;

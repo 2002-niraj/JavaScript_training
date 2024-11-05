@@ -389,7 +389,6 @@ boxs.forEach((box) => {
       details.addOn = details.addOn.filter((add) => add.name !== name);
       box.classList.remove("active2");
     }
-
     totalFunc();
     localStorage.setItem("details",JSON.stringify(details));
   });
