@@ -15,6 +15,7 @@ const total_text = document.querySelector("#total_amt span:nth-child(1)");
 
 
 let stepNum =0;
+
 const details = {
 
   userDetails:{
@@ -31,19 +32,15 @@ const details = {
   total:null
 }
 
-if (!localStorage.getItem("hasLoaded")) {
-  localStorage.clear();
-  localStorage.setItem("hasLoaded", "true");
-}
+
 
 document.addEventListener("DOMContentLoaded", loaddata);
 
 function loaddata(){
    
-
-
    const storedDetails = JSON.parse(localStorage.getItem("details"))
    stepNum = Number(localStorage.getItem("current_step"));
+
    if(stepNum === 4){
     localStorage.clear();
     stepNum = 0;
@@ -57,8 +54,6 @@ function loaddata(){
     selectedPlan();
     selectedAddonFunc();
    }
-
-
 
    showStep(stepNum);
 }
@@ -77,10 +72,12 @@ function selectedPlan(){
   const plan = Array.from(step__cards).find(
     (plan) => plan.querySelector(".plan__name").textContent === details.obj.plan_name
   );
+
   if(plan){
     document.querySelector(".active2").classList.remove("active2");
       plan.classList.add("active2");
   }
+
   if (details.obj.switch_status) {
     document.querySelector(".yearly__plan").style.color = "#02295a";
     document.querySelector(".monthly__plan").style.color = "#9699ab";
@@ -88,6 +85,7 @@ function selectedPlan(){
     document.querySelector(".monthly__plan").style.color = "#02295a";
     document.querySelector(".yearly__plan").style.color = "#9699ab";
   }
+
 }
 
 function selectedAddonFunc(){
@@ -113,9 +111,6 @@ function selectedAddonFunc(){
 
 
 }
-
-
-
 // Next and prev button
 nextBtns.forEach((nextBtn) => {
   nextBtn.addEventListener("click", (e) => {
@@ -220,7 +215,7 @@ prevBtns.forEach((prevBtn) => {
           input.style.borderColor = "red";
           isValid = false;
           flag2 = false;
-        } else if (!/^[1-9]\d{9}$/.test(value)) {
+        } else if (!/^(?:\+91\s?)?\d{10}$/.test(value)) {
 
           document.getElementById("message3").style.display = "flex";
           input.style.borderColor = "red";
@@ -297,6 +292,57 @@ const showStep = (x) => {
   });
 
 
+  /* this function show prices on step 2 monthly or yearly 
+  when toogle button is checked it show yearly price otherwice monthly price
+  and by default first card is activeCard */
+  function showPrice(checked){
+
+    const monthPrice = [9, 12, 15];
+    const yearPrice = [90, 120, 150];
+    
+    const prices = document.querySelectorAll(".plan__month");
+    const plan__names = document.querySelectorAll(".plan__name");
+    const free = document.querySelectorAll(".free");
+    const activeCard = document.querySelector(".active2");
+
+    if(checked){
+
+      yearPrice.forEach((e,index)=>{
+        prices[index].innerHTML = `$${e}/yr`;
+        free[index].style.display = "flex";
+      })
+    
+        if (activeCard) {
+        const activeIndex = Array.from(step__cards).indexOf(activeCard);
+        let price = prices[activeIndex].textContent;
+        price = price.match(/\d+/);
+        details.obj.plan_price = Number(price[0]);
+        details.obj.plan_name = plan__names[activeIndex].textContent;
+        details.obj.switch_status = true;
+      }
+
+    }
+    else{
+        
+      monthPrice.forEach((e,index)=>{
+        prices[index].innerHTML = `$${e}/mo`;
+        free[index].style.display = "none";
+      })
+      
+          if (activeCard) {
+        const activeIndex = Array.from(step__cards).indexOf(activeCard);
+        let price = prices[activeIndex].textContent;
+        price = price.match(/\d+/);
+        details.obj.plan_price = Number(price[0]);
+        details.obj.plan_name = plan__names[activeIndex].textContent;
+        details.obj.switch_status = false;
+      }
+
+    }
+
+  }
+
+
   /*  this store the status (true of false) true means yearly_plan and 
      false means monthly plan  bydefault status false */
 switcher.addEventListener("click", () => {
@@ -321,52 +367,9 @@ switcher.addEventListener("click", () => {
 
 
 
-/* this function show prices on step 2 monthly or yearly 
-  when toogle button is checked it show yearly price otherwice monthly price
-  and by default first card is activeCard */
-  function showPrice(checked) {
-    const monthPrice = [9, 12, 15];
-    const yearPrice = [90, 120, 150];
-  
-    const prices = document.querySelectorAll(".plan__month");
-    const plan__names = document.querySelectorAll(".plan__name");
-    const free = document.querySelectorAll(".free");
-    const activeCard = document.querySelector(".active2");
-  
-    if (checked) {
-      prices[0].innerHTML = `$${yearPrice[0]}/yr`;
-      free[0].style.display = "flex";
-      prices[1].innerHTML = `$${yearPrice[1]}/yr`;
-      free[1].style.display = "flex";
-      prices[2].innerHTML = `$${yearPrice[2]}/yr`;
-      free[2].style.display = "flex";
-  
-      if (activeCard) {
-        const activeIndex = Array.from(step__cards).indexOf(activeCard);
-        let price = prices[activeIndex].textContent;
-        price = price.match(/\d+/);
-        details.obj.plan_price = Number(price[0]);
-        details.obj.plan_name = plan__names[activeIndex].textContent;
-        details.obj.switch_status = true;
-      }
-    } else {
-      prices[0].innerHTML = `$${monthPrice[0]}/mo`;
-      free[0].style.display = "none";
-      prices[1].innerHTML = `$${monthPrice[1]}/mo`;
-      free[1].style.display = "none";
-      prices[2].innerHTML = `$${monthPrice[2]}/mo`;
-      free[2].style.display = "none";
-  
-      if (activeCard) {
-        const activeIndex = Array.from(step__cards).indexOf(activeCard);
-        let price = prices[activeIndex].textContent;
-        price = price.match(/\d+/);
-        details.obj.plan_price = Number(price[0]);
-        details.obj.plan_name = plan__names[activeIndex].textContent;
-        details.obj.switch_status = false;
-      }
-    }
-  }
+
+
+
 
   //   when user checked on checkbox name, and price of that box pushed in addon array
 boxs.forEach((box) => {
@@ -377,6 +380,7 @@ boxs.forEach((box) => {
     let price;
 
     if (checkbox.checked) {
+      
       if (details.obj.switch_status) {
         price = Number(box.querySelector(".year").textContent.match(/\d+/)[0]);
       } else {
@@ -389,7 +393,6 @@ boxs.forEach((box) => {
       details.addOn = details.addOn.filter((add) => add.name !== name);
       box.classList.remove("active2");
     }
-
     totalFunc();
     localStorage.setItem("details",JSON.stringify(details));
   });
@@ -437,12 +440,10 @@ function ShowMonthYear(status) {
     Ex: Pro (Monthly) $15/mo
    */
     function showDetails() {
-      if (selected__plan.children.length > 1) {
-        Array.from(selected__plan.children).forEach((child) => {
-          selected__plan.removeChild(child);
-        });
-      }
-    
+
+
+      selected__plan.innerHTML = '';
+
       const name = document.createElement("p");
       const monthORyear = document.createElement("p");
       const price = document.createElement("p");
@@ -466,17 +467,13 @@ function ShowMonthYear(status) {
     // when user click on change button it will go to stepNum= 0
 changePlanBtn.addEventListener("click", () => {
   stepNum = 1;
+  localStorage.setItem("current_step", JSON.stringify(stepNum));
   showStep(stepNum);
 });
 
 function selectedAddon() {
-
-  if (selected_addon.children.length >= 1) {
-    Array.from(selected_addon.children).forEach((child) => {
-      selected_addon.removeChild(child);
-    });
-  }
-
+  
+  selected_addon.innerHTML= '';
   // this will show name and price which user is selected on step 3
   details.addOn.forEach((ele) => {
     let li = document.createElement("li");

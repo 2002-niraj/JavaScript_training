@@ -15,6 +15,10 @@ let MonthChart;
 
 let expensesDetails = [];
 
+const defaultSearchMsg = document.createElement('p');
+defaultSearchMsg.innerHTML = 'No result found!';
+expance__list.appendChild(defaultSearchMsg);
+defaultSearchMsg.style.display = 'none';
 
 document.addEventListener('DOMContentLoaded',loadExpense);
 
@@ -42,7 +46,7 @@ function expenseList(expenses){
         li.setAttribute('data-id', expense.id);
         li.innerHTML = `
             <input type="date" value="${expense.date}" class="expense-item__input" readonly />
-            <input type="text" value="${expense.description}" id="descp" class="expense-item__input" readonly />
+            <input type="text" value="${expense.description}" class="expense-item__input" readonly />
             <input type="number" value="${expense.amount}" class="expense-item__input" readonly />
                                  <select class="expense-item__select" id="select_items" disabled>
                 <option value="Food" ${expense.category === "Food" ? "selected" : ""}>Food</option>
@@ -232,7 +236,7 @@ function saveFunc(id) {
         return;
       }
     
-      if (inputs[1].value === 0 || !/^[a-zA-Z][A-Za-z0-9!()_\-\.,\s]+$/.test(inputs[1].value)) {
+      if (inputs[1].value === 0 || !/^[a-zA-Z][A-Za-z0-9!()_\-\.\s]+$/.test(inputs[1].value)) {
         alert("invaild desc");
         return;
       }
@@ -279,7 +283,7 @@ function formVaildation(){
               document.getElementById("error1").style.display = "flex";
               isVaild = false;
        
-            } else if (!/^[a-zA-Z][A-Za-z0-9!()_\-\.,\s]+$/.test(value)) {
+            } else if (!/^[a-zA-Z][A-Za-z0-9!()_\-\.\s]+$/.test(value)) {
                
               document.getElementById("message1").style.display = "flex";
               isVaild = false;
