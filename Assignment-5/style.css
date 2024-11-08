@@ -5,21 +5,23 @@
 }
 
 body{
-    font-family: "Roboto", serif;
+    font-family: 'Roboto', sans-serif;
     display: flex;
     height: 100vh;
     background-color: #f4f7fc;
+    color: #333;
 }
 
 .sidebar{
     background-color: #2f3b52;
     width: 190px;
     color:#fff;
-    padding: 1rem;
+    padding: 1.4rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
+    height: 100vh;
 }
 
 .profile{
@@ -29,8 +31,8 @@ body{
     position: absolute;
     gap:10px;
     top:5rem;
-    left: 3.2rem;
-
+    left: 3.7rem;
+    text-align: center;
 }
 .profile__photo{
     width: 60px;
@@ -47,7 +49,9 @@ body{
 
 .sidebar__heading{
     text-align: center;
-    font-size: 2rem;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
 }
 
 .total_expance {
@@ -117,21 +121,25 @@ canvas{
     width: 100%;
     display: flex;
     flex-direction: column;
+    align-items: c;
     max-width: 900px;
     margin: 0 auto;
+    position: relative;
 }
 
 .expance__list_show__heading{
     display: flex;
     justify-content: space-between;
-    align-items: center;
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 1.6rem;
+
 }
 
 .expance__list_show h3{
    text-align: left;
    font-size: 1.4rem;
+   font-family: 'Roboto', sans-serif;
+   margin-bottom: 1.6rem;
 }
 
 
@@ -162,6 +170,7 @@ canvas{
     padding: 10px 0;
     background-color: #2f3b52;
     color:white;
+    font-family: 'Roboto', sans-serif;
 }
 
 .expance__list__title span{
@@ -174,7 +183,7 @@ canvas{
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap:0.8rem;
+    gap: 0.8rem;
     list-style: none;
     padding-left: 0;
     margin: 0;
@@ -192,7 +201,7 @@ canvas{
     align-items: center;
 }
 
-#select_items{
+.expense-item__select{
     font-weight: 500;
     color: black;
 }
@@ -254,6 +263,7 @@ input:focus{
     display: none;
     justify-content: center;
     align-items: center;
+    font-family: 'Roboto', sans-serif;
 }
 
 .popup__content{
@@ -269,13 +279,13 @@ input:focus{
     font-size: 1.5rem;
 }
 
-.expanceform label{
+label{
     display:  block;
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
 }
 
-.expanceform input ,.expanceform select{
+.expanceform input ,.expanceform select ,#edit-expense-form input ,#edit-expense-form select {
     width: 100%;
     padding: 0.6rem;
     margin-bottom: 1rem;
@@ -297,7 +307,7 @@ input:focus{
     font-weight: 500;
 }
 
-.expance__list__item #descp{
+.expance__list__item .desp{
 
     white-space: nowrap; 
     width: 140px; 
@@ -305,10 +315,7 @@ input:focus{
     text-overflow: ellipsis;
     
 }
-/* .expance__list__item #descp:hover{
-    overflow-x: scroll;
-    text-overflow: inherit;
-} */
+
 
 #close , #edit-close{
     font-size: 1rem;
@@ -358,3 +365,43 @@ input:focus , select:focus{
     outline: none;
 }
 
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0; 
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+}
+.pagination-btn {
+    padding: 0.6rem;
+    background-color: #2f3b52;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    border-radius: 5px;
+    border: none;
+}
+
+
+select:disabled {
+    background-color: white; 
+    color:black;
+    appearance: none; 
+    -webkit-appearance: none; 
+  }
+  
+  select {
+    appearance: none; 
+    -webkit-appearance: none; 
+    -moz-appearance: none; /* Remove dropdown caret in Firefox */
+    background-image: none; /* Remove background caret */
+    padding-right: 30px;  /* Optional: adjust padding to allow space for custom arrows */
+  }

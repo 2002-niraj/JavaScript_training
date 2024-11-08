@@ -9,11 +9,13 @@ const totalamt = document.getElementById('total');
 const inputs = document.querySelector('.expanceform').querySelectorAll('input');
 const SearchInput = document.getElementById('search');
 const search_btn = document.querySelector('.search_btn');
-
 let CategoryChart;
 let MonthChart;
 
 let expensesDetails = [];
+
+const defaultSearchMsg = document.createElement('p');
+defaultSearchMsg.innerHTML = 'No result found!';
 
 
 document.addEventListener('DOMContentLoaded',loadExpense);
@@ -42,9 +44,9 @@ function expenseList(expenses){
         li.setAttribute('data-id', expense.id);
         li.innerHTML = `
             <input type="date" value="${expense.date}" class="expense-item__input" readonly />
-            <input type="text" value="${expense.description}" id="descp" class="expense-item__input" readonly />
+            <input type="text" value="${expense.description}" class="expense-item__input desp" readonly />
             <input type="number" value="${expense.amount}" class="expense-item__input" readonly />
-                                 <select class="expense-item__select" id="select_items" disabled>
+            <select class="expense-item__select" disabled>
                 <option value="Food" ${expense.category === "Food" ? "selected" : ""}>Food</option>
                 <option value="Travel" ${expense.category === "Travel" ? "selected" : ""}>Travel</option>
                 <option value="Shopping" ${expense.category === "Shopping" ? "selected" : ""}>Shopping</option>
@@ -56,14 +58,14 @@ function expenseList(expenses){
                 <button onclick="deleteExpenseFunc(${expense.id})"><i class="fa-solid fa-trash"></i></button>
             </div>
         `;
-        expance__list.appendChild(li);
+        expance__list.prepend(li);
     });
 
 }
 
 function  totalExpanceAmt(){
     const total = expensesDetails.reduce((acc, curr) => acc + Number(curr.amount), 0);
-    totalamt.innerHTML = total;
+    totalamt.innerHTML = total.toFixed(2);
 }
 
 
@@ -77,12 +79,13 @@ function groupByCategory() {
 
 function groupByMonth() {
     return expensesDetails.reduce((acc,curr) => {
-        const month = new Date(curr.date).toLocaleString('default', { month: 'long' });
+        const month = new Date(curr.date).toLocaleString('default', { month: 'short' });
         acc[month] = acc[month] || 0;
         acc[month] = acc[month] + Number(curr.amount);
         return acc;
     }, {});
 }
+
 
 function showCharts() {
     const categoryData =  groupByCategory();
@@ -111,7 +114,7 @@ function showCharts() {
             options:{
                   title:{
                        display:true,
-                       text:'Expance by Category',
+                       text:'Expenses by Category',
                        font: {
                         size: 20
                     }
@@ -195,72 +198,82 @@ function deleteExpenseFunc(id) {
 
 function editExpenseFunc(id) {
     
-    const li = document.querySelector(`li[data-id="${id}"]`);
-    const inputs = li.querySelectorAll('input');
-    const select = li.querySelector('select');
+    const expense = expensesDetails.find(exp => exp.id === id);
+    const modal = document.getElementById('editModal');
+    modal.style.display = 'flex';
 
-    inputs.forEach(input=>{
-        input.removeAttribute('readonly');
-    })
+    document.getElementById('edit-description').value = expense.description;
+    document.getElementById('edit-amount').value = expense.amount;
+    document.getElementById('edit-date').value = expense.date;
+    document.getElementById('edit-category').value = expense.category;
 
+    const select = document.getElementById('edit-category');
     select.removeAttribute('disabled');
 
-    li.querySelector('.action-buttons').innerHTML = `
-       <button onclick="saveFunc(${id})"><i class="fa-solid fa-check"></i></button>
-        <button onclick="cancel()"><i class="fa-solid fa-xmark"></i></button>
-    `;
+    const form = document.getElementById('edit-expense-form');
+    form.onsubmit = function (event) {
+        event.preventDefault(); 
+        saveFunc(id); 
+        modal.style.display = 'none';  
+    };
 
 }
 
 
 function saveFunc(id) {
     const expense = expensesDetails.find(exp => exp.id === id);
-
        
-    const li = document.querySelector(`li[data-id="${id}"]`);
-    const inputs = li.querySelectorAll('input');
-    const select = li.querySelector('select');
 
 
-    if(inputs[1].value > 40){
+    const description = document.getElementById('edit-description').value;
+    const amount = Number(document.getElementById('edit-amount').value);
+    const date = document.getElementById('edit-date').value;
+    const category = document.getElementById('edit-category').value;
+
+
+    if(description > 40){
         alert(" Description text must be 40 characters or less ")
         return;
     }
 
-    if (Number(inputs[2].value) <= 0 || Number(inputs[2].value) === '' || isNaN(Number(inputs[2].value))) {
+    if (amount <= 0 || isNaN(amount)) {
         alert("Amount should be greater than zero and a positive number.");
         return;
       }
     
-      if (inputs[1].value === 0 || !/^[a-zA-Z][A-Za-z0-9!()_\-\.,\s]+$/.test(inputs[1].value)) {
+      if (!/^[a-zA-Z][A-Za-z0-9!()_\-\.,\s]+$/.test(description)) {
         alert("invaild desc");
         return;
       }
    
-    expense.date = inputs[0].value;
-    expense.description = inputs[1].value;
-    expense.amount = Number(inputs[2].value);
-    expense.category = select.value;
+      expense.date = date;
+      expense.description = description;
+      expense.amount = amount;
+      expense.category = category
 
 
-    localStorage.setItem('expensesDetails',JSON.stringify(expensesDetails));
+      localStorage.setItem('expensesDetails', JSON.stringify(expensesDetails));
     expenseList(expensesDetails);
     totalExpanceAmt();
     showCharts();
     
-    alert("edited sucessfully")
+    alert("saved chnages sucessfully");
     
 
 }
-function cancel(){
-    expenseList(expensesDetails)
-}
+
+document.querySelector('#edit-close').addEventListener('click',()=>{
+   
+    document.querySelector('#editModal').style.display = 'none';
+})
+
 
 
 function ClearErrorMessage(){
     document.getElementById("error1").style.display = "none";
     document.getElementById("message1").style.display = "none";
     document.getElementById("message2").style.display = "none";
+    document.getElementById("message3").style.display = "none";
     document.getElementById("error2").style.display = "none";
     document.getElementById("error3").style.display = "none";
   }
@@ -297,6 +310,10 @@ function formVaildation(){
                 document.getElementById("message2").style.display = "flex";
                 isVaild = false;
             }
+            else if(value >1000000){
+                document.getElementById("message3").style.display = "flex";
+                isVaild = false;
+            }
 
           }
 
@@ -321,7 +338,7 @@ submit_form.addEventListener('click',(e)=>{
     e.preventDefault();
 
     const description = document.getElementById('description').value.trim();
-    const amount = document.getElementById('amount').value;
+    const amount = Number(document.getElementById('amount').value).toFixed(2);
     const date = document.getElementById('date').value;
     const category = document.getElementById('category').value;
 
@@ -332,7 +349,8 @@ submit_form.addEventListener('click',(e)=>{
         alert(" Description text must be 40 characters or less ")
         return;
     }
-
+     
+    ClearErrorMessage()
      alert("Expance added Sucessfully ");
 
     if(description && amount && date && category){
@@ -357,13 +375,18 @@ search_btn.addEventListener('click' ,(e)=>{
     }
    const filterExpenses = expensesDetails.filter(expense => expense.category.toLowerCase() === query.toLowerCase());
         
-        if(filterExpenses.length === 0){
-           alert("no category found");
-           
-        }
-        else{
-            expenseList(filterExpenses);
-        }
+   if(filterExpenses.length === 0){
+
+    expenseList(filterExpenses);
+    expance__list.appendChild(defaultSearchMsg);
+  defaultSearchMsg.style.display = 'flex';
+   
+}
+else{
+    expenseList(filterExpenses);
+    defaultSearchMsg.style.display = 'none';
+}
+
   
 })
 
