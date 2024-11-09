@@ -22,6 +22,7 @@ body{
     justify-content: space-between;
     position: relative;
     height: 100vh;
+    font-family: 'Roboto', sans-serif;
 }
 
 .profile{
@@ -121,7 +122,6 @@ canvas{
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: c;
     max-width: 900px;
     margin: 0 auto;
     position: relative;
@@ -139,7 +139,7 @@ canvas{
    text-align: left;
    font-size: 1.4rem;
    font-family: 'Roboto', sans-serif;
-   margin-bottom: 1.6rem;
+
 }
 
 
@@ -291,6 +291,7 @@ label{
     margin-bottom: 1rem;
     border: 1px solid #ddd;
     border-radius: 5px;
+    font-family: 'Roboto', sans-serif;
 }
 
 .expense-item__input,.expense-item__select{
@@ -299,12 +300,12 @@ label{
     border: 1px solid black;
     font-size: 15px;
     font-weight: 400;
+    font-family: 'Roboto', sans-serif;
 }
 
 .expance__list__item select{
     color:black;
     background-color: white;
-    font-weight: 500;
 }
 
 .expance__list__item .desp{
@@ -398,10 +399,3 @@ select:disabled {
     -webkit-appearance: none; 
   }
   
-  select {
-    appearance: none; 
-    -webkit-appearance: none; 
-    -moz-appearance: none; /* Remove dropdown caret in Firefox */
-    background-image: none; /* Remove background caret */
-    padding-right: 30px;  /* Optional: adjust padding to allow space for custom arrows */
-  }

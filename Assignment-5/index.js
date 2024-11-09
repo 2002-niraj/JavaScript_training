@@ -90,6 +90,7 @@ function groupByMonth() {
 function showCharts() {
     const categoryData =  groupByCategory();
     const monthData = groupByMonth();
+    console.log(monthData);
 
     const categoryChartData = {
         labels: Object.keys(categoryData),
@@ -124,13 +125,19 @@ function showCharts() {
         });
     }
 
+    const sortedMonths = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    const sortedMonthData = sortedMonths.map(month => monthData[month] || 0);
+
     const monthChartData = {
-        labels: Object.keys(monthData), 
+        labels:  sortedMonths, 
         datasets: [{
             label: 'Expenses by Month',
-            data: Object.values(monthData),
+            data: sortedMonthData ,
             borderColor: '#FF5722',
-            borderWidth: 2, 
+            borderWidth: 1, 
             fill: false, 
         }]
     };
@@ -140,7 +147,7 @@ function showCharts() {
             x: {
                 beginAtZero: true,
                 title: {
-                    display: true,
+                      display: true,
                     text: 'Month'
                 }
             },
@@ -198,6 +205,9 @@ function deleteExpenseFunc(id) {
 
 function editExpenseFunc(id) {
     
+
+    const categorySelect = document.getElementById('edit-category');
+    categorySelect.removeAttribute('disabled');
     const expense = expensesDetails.find(exp => exp.id === id);
     const modal = document.getElementById('editModal');
     modal.style.display = 'flex';
@@ -207,8 +217,7 @@ function editExpenseFunc(id) {
     document.getElementById('edit-date').value = expense.date;
     document.getElementById('edit-category').value = expense.category;
 
-    const select = document.getElementById('edit-category');
-    select.removeAttribute('disabled');
+   
 
     const form = document.getElementById('edit-expense-form');
     form.onsubmit = function (event) {
@@ -391,7 +400,7 @@ else{
 })
 
 addExpancebtn.addEventListener('click',()=>{
-
+    
     popup.style.display = 'flex';
 });
 
