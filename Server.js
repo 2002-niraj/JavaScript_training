@@ -1,13 +1,11 @@
 const express = require('express');
 const app = express();
 
-const Routes = require('./routes/eventRoutes'); 
-
-app.use('/profile', express.static('uploads'));
+const routes = require('./routes/eventRoutes'); 
 
 app.use(express.json());
  
-app.use(Routes)
+app.use(routes)
 
 const port = process.env.PORT;
 app.listen(port, () => {

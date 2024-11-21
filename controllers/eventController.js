@@ -1,14 +1,21 @@
 
 const { executeQuery } = require('../helper/eventHelper')
 const cloudinary = require('../config/cloudinary')
+
+const { Messages } = require('../constants/constant')
   
   const getEvents = async (req, res) => {
     try {
       const query = "select * from ??";
-      res.json(await executeQuery(query,["events"]));
+      const eventData = await executeQuery(query,[process.env.DB_TABLE])
+      if(eventData.length === 0){
+        return res.status(404).json({message:Messages.EVENT_NOT_FOUND})
+      }
+      res.status(200).json(eventData);
     } catch (error) {
       res.status(500).json({
-        error: error.message,
+        message:Messages.ERROR_INTERNAL,
+        error:error.message
       });
     }
   };
@@ -17,11 +24,15 @@ const cloudinary = require('../config/cloudinary')
     try {
       const { id } = req.params;
       const query = "select * from ?? where id =?"
-      const data = await executeQuery(query,["events" ,id]);
-      res.json(data);
+      const eventData = await executeQuery(query,[process.env.DB_TABLE ,id]);
+      if(eventData.length === 0){
+        return res.status(404).json({message:`No event found of id ${id}`})
+      }
+      res.status(200).json(eventData);
     } catch (error) {
       res.status(500).json({
-        error: error.message,
+        message:Messages.ERROR_INTERNAL,
+        error:error.message
       });
     }
   };
@@ -31,12 +42,17 @@ const cloudinary = require('../config/cloudinary')
      try{
          const { location } = req.params;
          const query = "select * from ?? where location =?"
-         const data = await executeQuery(query, ["events" , location])
-         res.json(data);
+         const eventData = await executeQuery(query, [process.env.DB_TABLE , location]);
+
+         if(eventData.length === 0){
+          return res.status(404).json({message:`No event found at ${location} location`})
+         }
+         res.status(200).json(eventData);
      }
      catch(error){
       res.status(500).json({
-        error: error.message,
+        message:Messages.ERROR_INTERNAL,
+        error:error.message
       });
      }
   }
@@ -45,20 +61,27 @@ const cloudinary = require('../config/cloudinary')
     
     try {
       const { name, description,date_time, location } = req.body;
-      // const image_path = `uploads/${req.file.filename}`
 
-     const result = await cloudinary.uploader.upload(req.file.path);
-     console.log(result.url.substring(49));
-     console.log(result.secure_url);
-      
+      if(!name || !date_time || !location){
+        return res.status(500).json({
+          message:Messages.REQUIRE_FIELD
+        })
+      }
+     const result = await cloudinary.uploader.upload(req.file.path);      
       const query = 'insert into ?? (name, description,date_time, location ,image_path) values (?, ?, ?, ? ,?)'
-      await executeQuery(query,["events" ,name, description,date_time, location,result.url.substring(49)])
-      res.status(200).json({
-             message:"Event created successfully",
+     const data = await executeQuery(query,[process.env.DB_TABLE ,name, description,date_time, location,result.url.substring(49)])
+     if(!data){
+      return res.status(404).json({
+        message:Messages.ERROR_INSERTION
+      })
+     }
+      res.status(201).json({
+             message: Messages.EVENT_CREATED,
             image_url: result.secure_url
            });
     } catch (error) {
       res.status(500).json({
+        message:Messages.ERROR_INTERNAL,
         error: error.message,
       });
     }
@@ -69,14 +92,28 @@ const cloudinary = require('../config/cloudinary')
   const updateEvent = async (req, res) => {
   
     try {
-
-      const { name, description,date_time, location } = req.body;
       const { id } = req.params;
+      const { name, description,date_time, location } = req.body;
+       
+        if(!name || !date_time || !location){
+        return res.status(500).json({
+          message:Messages.REQUIRE_FIELD
+        })
+      }
+      
       const query = 'update ?? set name = ?, description = ?, date_time = ?,location = ? where id = ?'
-      await executeQuery(query,["events" ,name, description,date_time, location,id])
-      res.json({ message: "Event updated successfully" });
+    const data = await executeQuery(query,["events" ,name, description,date_time, location,id]);
+
+    if(data.affectedRows>0){
+      res.status(200).json({ message: Messages.EVENT_UPDATED });
+    }
+    else{
+      res.status(400).json({ message: Messages.EVENT_NOT_FOUND });
+    }
+      
     } catch (error) {
       res.status(500).json({
+        message:Messages.ERROR_INTERNAL,
         error: error.message,
       });
     }
@@ -87,11 +124,19 @@ const cloudinary = require('../config/cloudinary')
     try {
       const { id } = req.params;
       const query = 'delete from ?? where id = ?'
-      await executeQuery(query,["events" ,id]);
-      res.json({ message: "Event deleted successfully" });
+    const data =  await executeQuery(query,["events" ,id]);
+    
+    if(data.affectedRows>0){
+      res.status(200).json({ message: Messages.EVENT_DELETED });
+    }
+    else{
+      res.status(400).json({ message: Messages.EVENT_NOT_FOUND });
+    }
+      
     } catch (error) {
       res.status(500).json({
-        error: error.message,
+        message:Messages.ERROR_INTERNAL,
+        error: error.message
       });
     }
   };

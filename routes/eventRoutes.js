@@ -1,21 +1,23 @@
 
 const express = require('express');
-const app = express();
+const router = express.Router();
 const upload = require('../middleware/fileUpload')
+
+const {Routes} = require('../constants/constant');
  
 const {getEvents,getEventById ,createEvent,updateEvent,deleteEvent, getEventByLocation} = require('../controllers/eventController');
 
-app.get('/events', getEvents);
+router.get(Routes.GET_EVENTS, getEvents);
 
-app.get('/events/:id',getEventById)
+router.get(Routes.GET_EVENT_BY_ID,getEventById)
 
-app.get('/events/search/:location',getEventByLocation)
+router.get(Routes.SEARCH_EVENT_BY_LOCATION,getEventByLocation)
 
-app.post('/events' ,upload.single('profile') , createEvent);
+router.post(Routes.CREATE_EVENT ,upload.single('profile') , createEvent);
 
-app.put('/events/:id', updateEvent);
+router.put(Routes.UPDATE_EVENT, updateEvent);
 
-app.delete('/events/:id', deleteEvent);
+router.delete(Routes.DELETE_EVENT, deleteEvent);
 
 
-module.exports = app;
+module.exports = router;

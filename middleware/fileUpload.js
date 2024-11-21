@@ -4,19 +4,19 @@ const multer = require("multer");
 
 
 const storage = multer.diskStorage({
-    filename: (req, file, cb) => {
-        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+    filename: (req, file, callback) => {
+        return callback(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
     }
 });
 
 
-const filefilter = (req,file,cb)=>{
+const filefilter = (req,file,callback)=>{
 
     if(file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
-        cb(null,true);
+        callback(null,true);
     }
     else{
-        cb(new Error('only .jpg and .png files are allowrd'),false);
+        callback(new Error('only .jpg and .png files are allowrd'),false);
     }
 }
 
