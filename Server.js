@@ -1,11 +1,11 @@
-require('dotenv').config();
 const express = require('express');
 const app = express();
-const Routes = require('./Routes'); 
+
+const Routes = require('./routes/event-routes'); 
+
 app.use('/profile', express.static('uploads'));
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
  
 app.use(Routes)
 

@@ -1,9 +1,9 @@
 
 const express = require('express');
 const app = express();
-const upload = require('./fileUpload')
+const upload = require('../middleware/file-upload')
  
-const {getEvents,getEventById ,createEvent,updateEvent,deleteEvent, getEventByLocation} = require('./Controller');
+const {getEvents,getEventById ,createEvent,updateEvent,deleteEvent, getEventByLocation} = require('../controllers/event-controller');
 
 app.get('/events', getEvents);
 
