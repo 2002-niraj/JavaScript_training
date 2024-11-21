@@ -1,5 +1,5 @@
 
-const { executeQuery } = require('../helper/event-helper')
+const { executeQuery } = require('../helper/eventHelper')
 const cloudinary = require('../config/cloudinary')
   
   const getEvents = async (req, res) => {

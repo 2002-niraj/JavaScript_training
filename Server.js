@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 
-const Routes = require('./routes/event-routes'); 
+const Routes = require('./routes/eventRoutes'); 
 
 app.use('/profile', express.static('uploads'));
 
