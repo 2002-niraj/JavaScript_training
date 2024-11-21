@@ -55,7 +55,7 @@ const cloudinary = require('../config/cloudinary')
       await executeQuery(query,["events" ,name, description,date_time, location,result.url.substring(49)])
       res.status(200).json({
              message:"Event created successfully",
-            image_url: result.url
+            image_url: result.secure_url
            });
     } catch (error) {
       res.status(500).json({
