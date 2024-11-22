@@ -1,12 +1,13 @@
 
 const { executeQuery } = require('../helper/eventHelper')
+const eventSchema = require('../schemaValidation/schemaValidation')
 const cloudinary = require('../config/cloudinary')
 
 const { Messages } = require('../constants/constant')
   
   const getEvents = async (req, res) => {
     try {
-      const query = "select * from ??";
+      const query = Messages.GET_EVENTS_QUERY;
       const eventData = await executeQuery(query,[process.env.DB_TABLE])
       if(eventData.length === 0){
         return res.status(404).json({message:Messages.EVENT_NOT_FOUND})
@@ -23,7 +24,7 @@ const { Messages } = require('../constants/constant')
   const getEventById = async (req, res) => {
     try {
       const { id } = req.params;
-      const query = "select * from ?? where id =?"
+      const query = Messages.GET_EVENTBYID_QUERY
       const eventData = await executeQuery(query,[process.env.DB_TABLE ,id]);
       if(eventData.length === 0){
         return res.status(404).json({message:`No event found of id ${id}`})
@@ -41,7 +42,7 @@ const { Messages } = require('../constants/constant')
           
      try{
          const { location } = req.params;
-         const query = "select * from ?? where location =?"
+         const query = Messages.GET_EVENTBYLOCATION_QUERY;
          const eventData = await executeQuery(query, [process.env.DB_TABLE , location]);
 
          if(eventData.length === 0){
@@ -62,13 +63,16 @@ const { Messages } = require('../constants/constant')
     try {
       const { name, description,date_time, location } = req.body;
 
-      if(!name || !date_time || !location){
-        return res.status(500).json({
-          message:Messages.REQUIRE_FIELD
-        })
+      const {error} = eventSchema.validate(req.body);
+
+      if(error){
+        return res.status(400).json({
+          error: error.message
+      });
       }
+
      const result = await cloudinary.uploader.upload(req.file.path);      
-      const query = 'insert into ?? (name, description,date_time, location ,image_path) values (?, ?, ?, ? ,?)'
+      const query = Messages.CREATEEVENT_QUERY;
      const data = await executeQuery(query,[process.env.DB_TABLE ,name, description,date_time, location,result.url.substring(49)])
      if(!data){
       return res.status(404).json({
@@ -95,14 +99,16 @@ const { Messages } = require('../constants/constant')
       const { id } = req.params;
       const { name, description,date_time, location } = req.body;
        
-        if(!name || !date_time || !location){
-        return res.status(500).json({
-          message:Messages.REQUIRE_FIELD
-        })
+      const {error} = eventSchema.validate(req.body);
+
+      if(error){
+        return res.status(400).json({
+          error: error.message
+      });
       }
       
-      const query = 'update ?? set name = ?, description = ?, date_time = ?,location = ? where id = ?'
-    const data = await executeQuery(query,["events" ,name, description,date_time, location,id]);
+      const query = Messages.UPDATEEVENT_QUERY;
+    const data = await executeQuery(query,[process.env.DB_TABLE ,name, description,date_time, location,id]);
 
     if(data.affectedRows>0){
       res.status(200).json({ message: Messages.EVENT_UPDATED });
@@ -123,8 +129,8 @@ const { Messages } = require('../constants/constant')
   
     try {
       const { id } = req.params;
-      const query = 'delete from ?? where id = ?'
-    const data =  await executeQuery(query,["events" ,id]);
+      const query = Messages.DELETEEVENT_QUERY;
+    const data =  await executeQuery(query,[process.env.DB_TABLE ,id]);
     
     if(data.affectedRows>0){
       res.status(200).json({ message: Messages.EVENT_DELETED });
