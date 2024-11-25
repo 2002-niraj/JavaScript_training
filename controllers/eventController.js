@@ -1,93 +1,123 @@
 
-const { executeQuery } = require('../helper/eventHelper')
-const eventSchema = require('../schemaValidation/schemaValidation')
 const cloudinary = require('../config/cloudinary')
 
-const { Messages } = require('../constants/constant')
+const { messages,codes } = require('../constants/constant');
+
+const {createError,sendErrorResponse} = require('../helper/eventHelper');
+const streamifier = require('streamifier');
+
+const {    getEventFromDB,
+          getEventByIdFromDB,
+  createEventInDB,
+  updateEventInDB,
+  getEventByLocationDB,
+  deleteEventFromDB} = require('../model/eventModel')
+
   
   const getEvents = async (req, res) => {
     try {
-      const query = Messages.GET_EVENTS_QUERY;
-      const eventData = await executeQuery(query,[process.env.DB_TABLE])
-      if(eventData.length === 0){
-        return res.status(404).json({message:Messages.EVENT_NOT_FOUND})
+      const eventData = await getEventFromDB();
+      if(!eventData.length){
+         throw createError(messages.EVENT_NOT_FOUND,codes.NOT_FOUND);
       }
-      res.status(200).json(eventData);
+      res.status(codes.SUCESS).json(eventData);
     } catch (error) {
-      res.status(500).json({
-        message:Messages.ERROR_INTERNAL,
-        error:error.message
-      });
-    }
+      sendErrorResponse(res,error);
+
+      }
+    
   };
+
+
   
   const getEventById = async (req, res) => {
     try {
       const { id } = req.params;
-      const query = Messages.GET_EVENTBYID_QUERY
-      const eventData = await executeQuery(query,[process.env.DB_TABLE ,id]);
-      if(eventData.length === 0){
-        return res.status(404).json({message:`No event found of id ${id}`})
+
+      if(isNaN(Number(id))){
+        throw createError(messages.INVAILD_ID,codes.BAD_REQUEST);
+
+       }
+      const eventData = await getEventByIdFromDB(id);
+      if(!eventData.length){  
+        throw createError('No event found of this id' , codes.NOT_FOUND)      
       }
-      res.status(200).json(eventData);
+      res.status(codes.SUCESS).json(eventData);
     } catch (error) {
-      res.status(500).json({
-        message:Messages.ERROR_INTERNAL,
-        error:error.message
-      });
+      // res.status(error.statusCode).send({
+      //   message:error.message
+      // });
+      sendErrorResponse(res,error);
     }
   };
+
 
   const getEventByLocation = async(req,res)=>{
           
      try{
          const { location } = req.params;
-         const query = Messages.GET_EVENTBYLOCATION_QUERY;
-         const eventData = await executeQuery(query, [process.env.DB_TABLE , location]);
+         const eventData = await getEventByLocationDB(location);
 
-         if(eventData.length === 0){
-          return res.status(404).json({message:`No event found at ${location} location`})
+         if(!eventData.length){ 
+          throw createError('No events found of at this location' , codes.NOT_FOUND)      
          }
-         res.status(200).json(eventData);
+         res.status(codes.SUCESS).json(eventData);
      }
      catch(error){
-      res.status(500).json({
-        message:Messages.ERROR_INTERNAL,
-        error:error.message
-      });
+      sendErrorResponse(res,error);
      }
   }
   
   const createEvent = async (req, res) => {
     
     try {
-      const { name, description,date_time, location } = req.body;
 
-      const {error} = eventSchema.validate(req.body);
+      const { name, description,email, start_date_time, end_date_time, city,venue} = req.body;
 
-      if(error){
-        return res.status(400).json({
-          error: error.message
-      });
-      }
+      let uploadFromBuffer = (req) => {
 
-     const result = await cloudinary.uploader.upload(req.file.path);      
-      const query = Messages.CREATEEVENT_QUERY;
-     const data = await executeQuery(query,[process.env.DB_TABLE ,name, description,date_time, location,result.url.substring(49)])
+        return new Promise((resolve, reject) => {
+     
+          let cld_upload_stream = cloudinary.uploader.upload_stream(
+           {
+           },
+           (error, result) => {
+     
+             if (result) {
+               resolve(result);
+             } else {
+               reject(error);
+              }
+            }
+          );
+     
+          streamifier.createReadStream(req.file.buffer).pipe(cld_upload_stream);
+        });
+     
+     };
+     
+     let result = await uploadFromBuffer(req);
+      
+     const data = await createEventInDB(name, description,email, start_date_time, end_date_time, city,venue ,result.url);
+
      if(!data){
-      return res.status(404).json({
-        message:Messages.ERROR_INSERTION
-      })
+      throw createError(messages.ERROR_INSERTION , 400);       
      }
-      res.status(201).json({
-             message: Messages.EVENT_CREATED,
-            image_url: result.secure_url
-           });
-    } catch (error) {
-      res.status(500).json({
-        message:Messages.ERROR_INTERNAL,
-        error: error.message,
+
+      res.status(codes.CREATED).json({
+             message: messages.EVENT_CREATED,
+            image_url:result.url
       });
+
+    } catch (error) {
+        
+      if (error.code == 'ER_DUP_ENTRY'){
+       return res.status(400).send({
+          message : messages.DUPLICATE_ENTRY
+       });
+      }
+      sendErrorResponse(res,error);
+      
     }
   };
 
@@ -97,53 +127,63 @@ const { Messages } = require('../constants/constant')
   
     try {
       const { id } = req.params;
-      const { name, description,date_time, location } = req.body;
-       
-      const {error} = eventSchema.validate(req.body);
 
-      if(error){
-        return res.status(400).json({
-          error: error.message
-      });
-      }
-      
-      const query = Messages.UPDATEEVENT_QUERY;
-    const data = await executeQuery(query,[process.env.DB_TABLE ,name, description,date_time, location,id]);
+       if(isNaN(Number(id))){
+        throw createError(messages.INVAILD_ID,codes.BAD_REQUEST);
+
+       }
+      const { name, description,email, start_date_time, end_date_time, city,venue } = req.body;
+
+    const data = await updateEventInDB(name, description,email, start_date_time, end_date_time, city,venue ,id);
 
     if(data.affectedRows>0){
-      res.status(200).json({ message: Messages.EVENT_UPDATED });
+      res.status(codes.SUCESS).send({ message: messages.EVENT_UPDATED });
     }
-    else{
-      res.status(400).json({ message: Messages.EVENT_NOT_FOUND });
+    else{ 
+      throw createError(messages.EVENT_NOT_FOUND, codes.NOT_FOUND)
     }
       
     } catch (error) {
-      res.status(500).json({
-        message:Messages.ERROR_INTERNAL,
-        error: error.message,
-      });
+      
+     if (error.code == 'ER_DUP_ENTRY'){
+       return res.status(400).send({
+          message : messages.DUPLICATE_ENTRY
+       });
+      }
+      sendErrorResponse(res,error);
+
     }
   };
   
+
   const deleteEvent = async (req, res) => {
   
     try {
       const { id } = req.params;
-      const query = Messages.DELETEEVENT_QUERY;
-    const data =  await executeQuery(query,[process.env.DB_TABLE ,id]);
+
+      if(isNaN(Number(id))){
+        throw createError(messages.INVAILD_ID,codes.BAD_REQUEST);
+       }
+
+       const dataExits = await getEventByIdFromDB(id);
+       if(!dataExits.length){
+        throw createError(messages.EVENT_NOT_FOUND,codes.NOT_FOUND);
+       }
+
+    const data =  await deleteEventFromDB(id);
+
     
     if(data.affectedRows>0){
-      res.status(200).json({ message: Messages.EVENT_DELETED });
+      res.status(codes.SUCESS).send({ message: messages.EVENT_DELETED });
     }
     else{
-      res.status(400).json({ message: Messages.EVENT_NOT_FOUND });
+      throw createError(messages.EVENT_NOT_FOUND,codes.NOT_FOUND);
     }
       
     } catch (error) {
-      res.status(500).json({
-        message:Messages.ERROR_INTERNAL,
-        error: error.message
-      });
+         
+      sendErrorResponse(res,error);
+
     }
   };
   

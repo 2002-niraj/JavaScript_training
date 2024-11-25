@@ -1,11 +1,23 @@
 const db = require('../config/dbConnection');
-require('dotenv').config();
+const { messages } = require('../constants/constant');
 
-
-const executeQuery = async (query, parameter =[])=>{
+const executeQuery = async(query, parameter =[])=>{
      
     const [data] = await db.promise().query(query,parameter);
     return data;
  }
 
- module.exports = { executeQuery };
+ const createError = (message,statusCode)=>{
+    const error = new Error(message);
+    error.statusCode = statusCode
+    return error;
+
+ }
+
+ const sendErrorResponse =( res, error)=>{
+    res.status(error.statusCode|| 500 ).send({
+        message:error.message
+    })
+ }
+
+ module.exports = { executeQuery,createError,sendErrorResponse };
