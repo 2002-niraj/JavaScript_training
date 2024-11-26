@@ -1,6 +1,5 @@
 const multer = require("multer");
 
- //const { filetype } = require('../constants/constant')
  
 
  const storage = multer.memoryStorage();

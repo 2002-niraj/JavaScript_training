@@ -1,4 +1,7 @@
 {
     "files.autoSave": "afterDelay",
-    "editor.mouseWheelZoom": true
+    "editor.mouseWheelZoom": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnPaste": false,
+    "editor.formatOnSave": true
 }
