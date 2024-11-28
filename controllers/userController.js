@@ -1,134 +1,157 @@
-import { registerUserInDB,getUserFromDB,getUserDetails ,addInMeter,getMeterNumberFromDB,getMeterNumberFromID,getReadingByUserID} from "../models/userModel.js";
-import { createError,sendErrorResponse } from "../helper/helper.js"
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import {
+  registerUserInDB,
+  getUserFromDB,
+  getUserDetails,
+  addInMeter,
+  getMeterNumberFromDB,
+  getMeterNumberFromID,
+  getReadingByUserID,
+} from "../models/userModel.js";
+import { errorHandler, sendErrorResponse } from "../helper/helper.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-const registerUser = async(req,res)=>{
+import constant from "../constant/constant.js";
+const {
+  USER_ALREADY_EXIT,
+  METER_ALREADY_EXIT,
+  ERROR_IN_METER,
+  ERROR_IN_REGISTER,
+  REGISTER_SUCESS,
+  ACCOUNT_NOT_EXITS,
+  WRONG_PASSWORD,
+  LOGIN_SUCESS,
+  USER_NOT_FOUND,
+  USER_PROFILE,
+  METER_NOT_FOUND,
+} = constant.messages;
 
- 
-    try{
-        const {name,email,password,contact,city,address,meter_number} = req.body;
+const {SUCCESS,BAD_REQUEST,NOT_FOUND,CREATED,ER_DUP_ENTRY} = constant.codes
 
-        console.log(req.body);
+const registerUser = async (req, res) => {
+  try {
+    const { name, email, password, contact, city, address, meter_number } =
+      req.body;
 
-        const created_by = email ;
-        const updated_by = email ;
+    const userExits = await getUserFromDB(email);
 
-        const userExits = await getUserFromDB(email);
-
-        if(userExits.length>0){
-           throw createError("User already exit please login",400);
-        };
-
-        const meterExits = await getMeterNumberFromDB(meter_number)
-        if(meterExits.length>0){
-            throw createError("meter number already registered",400);
-        }
-
-        const meterResult = await addInMeter(meter_number,created_by,updated_by);
-        if(!meterResult){
-            throw createError("error in registering meter",400);
-        }
-
-        const meter_id = meterResult.insertId
-
-        const hashedPassword = await bcrypt.hash(password,10);
-        const registerUser = await registerUserInDB(name,email,hashedPassword,contact,city,address,meter_id,created_by,updated_by);
-
-        if (!registerUser) {
-            throw createError("error in registeration", 400);
-        }
-
-        res.status(201).json({
-            message:"user Registered sucessfully",
-            user:{
-                name,email,contact,city,address,meter_number
-            }
-        })
-    }
-    catch(error){
-           sendErrorResponse(res,error);
+    if (userExits.length > 0) {
+      throw errorHandler(USER_ALREADY_EXIT,BAD_REQUEST);
     }
 
-}
+    const meterExits = await getMeterNumberFromDB(meter_number);
+    if (meterExits.length > 0) {
+      throw errorHandler(METER_ALREADY_EXIT, BAD_REQUEST);
+    }
 
-const loginUser = async(req,res)=>{
+    const meterResult = await addInMeter(meter_number, email);
+    if (!meterResult) {
+      throw errorHandler( ERROR_IN_METER, BAD_REQUEST);
+    }
 
-  try{
-    const {email,password} = req.body;
-   
+    const meter_id = meterResult.insertId;
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const registerUser = await registerUserInDB(
+      name,
+      email,
+      hashedPassword,
+      contact,
+      city,
+      address,
+      meter_id
+    );
+
+    if (!registerUser) {
+      throw errorHandler(ERROR_IN_REGISTER, BAD_REQUEST);
+    }
+
+    res.status(CREATED).json({
+      message: REGISTER_SUCESS,
+      user: {
+        name,
+        email,
+        contact,
+        city,
+        address,
+        meter_number,
+      },
+    });
+  } catch (error) {
+
+    if (error.code == "ER_DUP_ENTRY") {
+        return res.status(BAD_REQUEST).send({
+          message: ER_DUP_ENTRY
+        });
+      }
+
+    sendErrorResponse(res, error);
+
+  }
+};
+
+const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
     const [user] = await getUserFromDB(email);
 
-    if(!user){
-        throw createError("account not found please register",400);
+    if (!user) {
+      throw errorHandler(ACCOUNT_NOT_EXITS, BAD_REQUEST);
     }
 
-    const isVaildPassword = await bcrypt.compare(password,user.password);
+    const isVaildPassword = await bcrypt.compare(password, user.password);
 
-    if(!isVaildPassword){
-        throw createError("wrong passoword",400);
+    if (!isVaildPassword) {
+      throw errorHandler(WRONG_PASSWORD, BAD_REQUEST);
     }
-    const token = jwt.sign({user_id:user.id,role_id:user.role_id},process.env.SECRETKEY);
+    const token = jwt.sign(
+      { user_id: user.id, role_id: user.role_id, email: user.email },
+      process.env.SECRETKEY
+    );
 
-    res.status(200).json({
-        message:"user login successfully",
-        token
-    })
-
+    res.status(SUCCESS).json({
+      message: LOGIN_SUCESS,
+      token,
+    });
+  } catch (error) {
+    sendErrorResponse(res, error);
   }
-  catch(error){
+};
 
-    sendErrorResponse(res,error);
+const profileUser = async (req, res) => {
+  try {
+    const userId = req.user.user_id;
 
+    const [user] = await getUserDetails(userId);
+
+    if (!user) {
+      throw errorHandler(USER_NOT_FOUND, NOT_FOUND);
+    }
+
+    const [meter] = await getMeterNumberFromID(user.meter_id);
+    if (!meter) {
+      throw errorHandler(METER_NOT_FOUND, NOT_FOUND);
+    }
+
+    const readings = await getReadingByUserID(userId);
+
+    res.status(SUCCESS).json({
+      message: USER_PROFILE,
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        city: user.city,
+        address: user.address,
+        role_id: user.role_id,
+        meter_number: meter.meter_number,
+        readings: readings,
+      },
+    });
+  } catch (error) {
+    sendErrorResponse(res, error);
   }
-}
+};
 
-const profileUser = async(req,res)=>{
-      
-   try{
-    
-     const userId = req.user.user_id; 
-
-     const [user] = await getUserDetails(userId);
-
-     if(!user){
-        throw createError("user not found",404);
-     }
-
-  
-     const [meter] = await getMeterNumberFromID(user.meter_id);
-      if(!meter){
-        throw createError("meter not found for user",404);
-      } 
-
-      const readings = await getReadingByUserID(userId);
-
-      console.log(readings);
-
-    //   const readingArray = readings.map((reading)=>({
-    //     reading_date:reading.reading_date,
-    //     reading_value:reading.reading_value
-    //   }));
-
-      res.status(200).json({
-        message:"user profile",
-        data:{
-            id:user.id,
-            name:user.name,
-            email:user.email,
-            city:user.city,
-            address:user.address,
-            role_id:user.role_id,
-            meter_number:meter.meter_number,
-            readings:readings
-        }
-      })
-
-   }
-   catch(error){
-       sendErrorResponse(res,error);
-   }
-}
-
-
-export {registerUser,loginUser,profileUser};
+export { registerUser, loginUser, profileUser };

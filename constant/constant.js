@@ -15,7 +15,18 @@ const constants = {
     },
   
     messages: {
-      
+      USER_ALREADY_EXIT:'this email is already exits',
+      METER_ALREADY_EXIT:'meter number already registered',
+      ERROR_IN_METER:'error in registering meter',
+      ERROR_IN_REGISTER:'error in registeration',
+      REGISTER_SUCESS:'user Registered sucessfully',
+      ACCOUNT_NOT_EXITS:'account not found please register',
+      WRONG_PASSWORD:'wrong passoword',
+      LOGIN_SUCESS:'user logged in successfully',
+      USER_NOT_FOUND:'user not found',
+      METER_NOT_FOUND:'meter not found for user',
+      USER_PROFILE:'user profile',
+      ER_DUP_ENTRY:'Record already exits'
     },
   
     codes: {

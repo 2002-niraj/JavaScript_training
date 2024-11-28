@@ -17,7 +17,7 @@ const executeQuery = (query, parameter =[])=>{
 
 
 
- const createError = (message,statusCode)=>{
+ const errorHandler = (message,statusCode)=>{
     const error = new Error(message);
     error.statusCode = statusCode
     return error;
@@ -30,4 +30,4 @@ const executeQuery = (query, parameter =[])=>{
     })
  }
 
- export {executeQuery,createError,sendErrorResponse}
+ export {executeQuery,errorHandler,sendErrorResponse}
