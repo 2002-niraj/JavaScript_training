@@ -9,7 +9,7 @@ import {
   getAllMeterRecord,
   createMeterRecord,
   updateMeterRecord,
-  deleteMeterRecord,
+  deleteMeterRecord,fileHandler
 } from "../controllers/adminController.js";
 
 import constant from "../constant/constant.js";
@@ -25,6 +25,8 @@ const {
   DELETE_METERRECORD,
 } = constant.routes;
 
+import upload from "../config/fileUpload.js";
+
 const adminRoute = express.Router();
 
 adminRoute.get(GET_ALL_USERS, verifyToken, getAllusers);
@@ -37,5 +39,7 @@ adminRoute.get(GET_ALL_METERRECORD, verifyToken, getAllMeterRecord);
 adminRoute.post(CREATE_METERRECORD, verifyToken, createMeterRecord);
 adminRoute.put(UPDATE_METERRECORD, verifyToken, updateMeterRecord);
 adminRoute.patch(DELETE_METERRECORD, verifyToken, deleteMeterRecord);
+
+adminRoute.post('/fileupload',verifyToken,upload.single('file'),fileHandler)
 
 export default adminRoute;

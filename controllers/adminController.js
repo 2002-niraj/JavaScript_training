@@ -7,6 +7,7 @@ import {
   changeRoleInDB,
   getMeterRecordFromDB,
   createMeterInDB,
+  updateMeterRecordInDB,deleteReadingFromDB,getreadingByIdFromDB
 } from "../models/adminModel.js";
 import bcrypt from "bcrypt";
 import {
@@ -113,6 +114,16 @@ const updateUser = async (req, res) => {
     const { id } = req.params;
     const { name, email, contact, city, address } = req.body;
 
+
+    if (isNaN(Number(id))) {
+      throw errorHandler("invaild id", 400);
+    }
+
+    const dataExits = await getUserByIdFromDB(id);
+    if (!dataExits.length) {
+        throw errorHandler('user not found', 404);
+     }
+
     const updateUser = await updateUserInDB(
       name,
       email,
@@ -151,6 +162,7 @@ const deleteUser = async (req, res) => {
       throw errorHandler("invaild id", 400);
     }
 
+
     const userExits = await getUserByIdFromDB(id);
     if (!userExits.length) {
       throw errorHandler("user not found", 404);
@@ -169,9 +181,11 @@ const deleteUser = async (req, res) => {
     } else {
       throw errorHandler("user not found", 404);
     }
+
   } catch (error) {
     sendErrorResponse(res, error);
   }
+
 };
 
 const changeUserRole = async (req, res) => {
@@ -219,7 +233,6 @@ const getAllMeterRecord = async (req, res) => {
 };
 
 const createMeterRecord = async (req, res) => {
-
   try {
     const role_id = req.user.role_id;
     if (role_id == 3) {
@@ -234,45 +247,134 @@ const createMeterRecord = async (req, res) => {
       reading_date,
       req.user.email
     );
-    
-    if(!createMeter){
-        throw errorHandler('error in creating meter record',404);
+
+    if (!createMeter) {
+      throw errorHandler("error in creating meter record", 404);
     }
 
     res.status(200).json({
-        message:'meter record created sucessfully',
-        meterRecord:{
-            user_id,
-            reading_value,
-            reading_date
-        }
-    })
-
+      message: "meter record created sucessfully",
+      meterRecord: {
+        user_id,
+        reading_value,
+        reading_date,
+      },
+    });
   } catch (error) {
-    if (error.code == 'ER_DUP_ENTRY') {
+    if (error.code == "ER_DUP_ENTRY") {
       return res.status(BAD_REQUEST).send({
-        message:'record already exits'
+        message: "record already exits",
       });
-    }
-    else if(error.code == 'ER_NO_REFERENCED_ROW_2'){
-        return res.status(BAD_REQUEST).send({
-            message: 'user_id is not exits'
-          });
-    }
-    else{
-        sendErrorResponse(res, error);
+    } else if (error.code == "ER_NO_REFERENCED_ROW_2") {
+      return res.status(BAD_REQUEST).send({
+        message: "user_id is not exits",
+      });
+    } else {
+      sendErrorResponse(res, error);
     }
   }
 };
 
+const fileHandler = async (req, res) => {
+  try {
+    const role_id = req.user.role_id;
+    if (role_id == 3) {
+      throw errorHandler("access denied!", 404);
+    }
+
+    if (!req.file) {
+      throw errorHandler("No file uploaded", 400);
+    }
+
+    console.log(req.file);
+  } catch (error) {
+    sendErrorResponse(res, error);
+  }
+};
 
 const updateMeterRecord = async (req, res) => {
   try {
-  } catch (error) {}
+    const role_id = req.user.role_id;
+    if (role_id == 3) {
+      throw errorHandler("access denied!", 404);
+    }
+    const { id } = req.params;
+    const { user_id, reading_value, reading_date } = req.body;
+    const updated_by = req.user.email;
+
+
+    if (isNaN(Number(id))) {
+      throw errorHandler("invaild id", 400);
+    }
+
+    const readingExits = await getreadingByIdFromDB(id);
+    if (!readingExits.length) {
+      throw errorHandler("meter record not found", 404);
+    }
+
+
+    const updateMeterRecord = await updateMeterRecordInDB(
+      user_id,
+      reading_value,
+      reading_date,
+      updated_by,
+      id
+    );
+
+    if (updateMeterRecord.affectedRows > 0) {
+      res.status(200).send({ message: "meter record updated sucessfully" });
+    } else {
+      throw errorHandler("meter not found", 404);
+    }
+
+
+  } catch (error) {
+    if (error.code == "ER_DUP_ENTRY") {
+      return res.status(BAD_REQUEST).send({
+        message: "record already exits",
+      });
+    } else if (error.code == "ER_NO_REFERENCED_ROW_2") {
+      return res.status(BAD_REQUEST).send({
+        message: "user_id is not exits",
+      });
+    } else {
+      sendErrorResponse(res, error);
+    }
+  }
 };
 const deleteMeterRecord = async (req, res) => {
   try {
-  } catch (error) {}
+
+    const role_id = req.user.role_id;
+    if (role_id == 3) {
+      throw errorHandler("access denied!", 404);
+    }
+
+    const { id } = req.params;
+
+    if (isNaN(Number(id))) {
+      throw errorHandler("invaild id", 400);
+    }
+   
+    
+    const readingExits = await getreadingByIdFromDB(id);
+    if (!readingExits.length) {
+      throw errorHandler("meter record not found", 404);
+    }
+    
+
+    const readingData = await deleteReadingFromDB(id);
+
+    if (readingData.affectedRows > 0) {
+      res.status(200).send({ message: "meterRecord deleted sucessfully" });
+    } else {
+      throw errorHandler("meter record not found", 404);
+    }
+
+  } catch (error) {
+    sendErrorResponse(res, error);
+  }
+
 };
 
 export {
@@ -285,6 +387,5 @@ export {
   createMeterRecord,
   updateMeterRecord,
   deleteMeterRecord,
+  fileHandler,
 };
-
-

@@ -36,7 +36,7 @@ const changeRoleInDB = async(id,role_id)=>{
 }
 const getMeterRecordFromDB = async()=>{
     
-      const query = "select user_id,reading_value,reading_date from reading";
+      const query = "select user_id,reading_value,DATE_FORMAT(reading_date,'%Y-%m-%d') as reading_date from reading where is_deleted=0";
       const result = await executeQuery(query);
       return result;
 }
@@ -49,4 +49,27 @@ const createMeterInDB = async(user_id,reading_value,reading_date,email)=>{
     return result;
 }
 
-export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB,getMeterRecordFromDB,createMeterInDB}
+const updateMeterRecordInDB = async(user_id,reading_value,reading_date,updated_by,id)=>{
+   
+     const query = `update reading set user_id=?,reading_value=?,reading_date=?,updated_by=?
+     where id=?`;
+     const result = await executeQuery(query,[user_id,reading_value,reading_date,updated_by,id]);
+     return result;
+}
+
+const deleteReadingFromDB = async(id)=>{
+  const query = 'update reading set is_deleted = 1 where id =?';
+  const result = await executeQuery(query,[id]);
+  return result;
+}
+
+const getreadingByIdFromDB = async(id)=>{
+        
+    const query = 'select * from reading where id = ? and is_deleted = 0';
+    const result = await executeQuery(query,[id]);
+    return result;
+}
+
+
+
+export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB,getMeterRecordFromDB,createMeterInDB,updateMeterRecordInDB,deleteReadingFromDB,getreadingByIdFromDB}
