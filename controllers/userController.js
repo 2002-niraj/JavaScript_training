@@ -6,6 +6,9 @@ import {
   getMeterNumberFromDB,
   getMeterNumberFromID,
   getReadingByUserID,
+  getUserForLogin,
+  restoreUserInDB,
+  restoreMeterInDB,
 } from "../models/userModel.js";
 import { errorHandler, sendErrorResponse } from "../helper/helper.js";
 import bcrypt from "bcrypt";
@@ -26,7 +29,8 @@ const {
   METER_NOT_FOUND,
 } = constant.messages;
 
-const {SUCCESS,BAD_REQUEST,NOT_FOUND,CREATED,ER_DUP_ENTRY} = constant.codes
+const { SUCCESS, BAD_REQUEST, NOT_FOUND, CREATED, ER_DUP_ENTRY } =
+  constant.codes;
 
 const registerUser = async (req, res) => {
   try {
@@ -34,9 +38,49 @@ const registerUser = async (req, res) => {
       req.body;
 
     const userExits = await getUserFromDB(email);
-
+       
     if (userExits.length > 0) {
-      throw errorHandler(USER_ALREADY_EXIT,BAD_REQUEST);
+      const existingUser = userExits[0];
+      if (existingUser.is_deleted == 1) {
+        const restoreMeterResult = await restoreMeterInDB(
+          existingUser.meter_id,
+          meter_number,
+          email
+        );
+
+        if (!restoreMeterResult) {
+          throw errorHandler(ERROR_IN_METER, BAD_REQUEST);
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const restoreUserResult = await restoreUserInDB(
+          existingUser.id,
+          name,
+          email,
+          hashedPassword,
+          contact,
+          city,
+          address,
+          existingUser.meter_id
+        );
+        if (!restoreUserResult) {
+          throw errorHandler(ERROR_IN_REGISTER, BAD_REQUEST);
+        }
+
+        return res.status(200).json({
+          message: REGISTER_SUCESS,
+          user: {
+            name,
+            email,
+            contact,
+            city,
+            address,
+            meter_number,
+          },
+        });
+      }
+
+      throw errorHandler(USER_ALREADY_EXIT, BAD_REQUEST);
     }
 
     const meterExits = await getMeterNumberFromDB(meter_number);
@@ -46,7 +90,7 @@ const registerUser = async (req, res) => {
 
     const meterResult = await addInMeter(meter_number, email);
     if (!meterResult) {
-      throw errorHandler( ERROR_IN_METER, BAD_REQUEST);
+      throw errorHandler(ERROR_IN_METER, BAD_REQUEST);
     }
 
     const meter_id = meterResult.insertId;
@@ -78,15 +122,14 @@ const registerUser = async (req, res) => {
       },
     });
   } catch (error) {
-
+    
     if (error.code == "ER_DUP_ENTRY") {
-        return res.status(BAD_REQUEST).send({
-          message: ER_DUP_ENTRY
-        });
-      }
+      return res.status(BAD_REQUEST).send({
+        message: ER_DUP_ENTRY,
+      });
+    }
 
     sendErrorResponse(res, error);
-
   }
 };
 
@@ -94,7 +137,7 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const [user] = await getUserFromDB(email);
+    const [user] = await getUserForLogin(email);
 
     if (!user) {
       throw errorHandler(ACCOUNT_NOT_EXITS, BAD_REQUEST);

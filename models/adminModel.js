@@ -9,10 +9,12 @@ join meter as e2 on e1.meter_id = e2.id  where e1.is_deleted = 0`
     return result;
 }
 
-const updateUserInDB = async()=>{
-           
-  
-}
+const updateUserInDB = async(name,email,contact,city,address,updated_by,id)=>{
+    const query = `update user_details
+    set name=?,email=?,contact=?,city=?,address=?,updated_by=? where id=?`;
+    const result = executeQuery(query,[name,email,contact,city,address,updated_by,id]);
+    return result;
+ }
 const getUserByIdFromDB = async(id)=>{
         
     const query = 'select * from user_details where id = ? and is_deleted = 0';
@@ -32,5 +34,19 @@ const changeRoleInDB = async(id,role_id)=>{
     const result = await executeQuery(query,[role_id,id]);
     return result;
 }
+const getMeterRecordFromDB = async()=>{
+    
+      const query = "select user_id,reading_value,reading_date from reading";
+      const result = await executeQuery(query);
+      return result;
+}
 
-export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB}
+const createMeterInDB = async(user_id,reading_value,reading_date,email)=>{
+
+    const query = `insert into reading (user_id,reading_value,reading_date,created_by,updated_by)
+     values (?,?,?,?,?)`;
+    const result = await executeQuery(query,[user_id,reading_value,reading_date,email,email]);
+    return result;
+}
+
+export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB,getMeterRecordFromDB,createMeterInDB}

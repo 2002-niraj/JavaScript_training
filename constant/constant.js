@@ -35,6 +35,14 @@ const constants = {
       INTERNAL_SERVER_ERROR: 500,
       NOT_FOUND: 404,
       BAD_REQUEST: 400,
+    },
+    middlewareConstant:{
+              TOKEN_NOT_EXIT:'token is not exit',
+      INVAILD_TOKEN:'invalid token'
+    },
+    dbConstant:{
+     CONNECTION_FAILED:'Database connection failed:',
+     CONNECTION_SUCESS:'Connected to the MySQL database'
     }
   };
   
