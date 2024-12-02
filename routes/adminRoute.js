@@ -26,20 +26,24 @@ const {
 } = constant.routes;
 
 import upload from "../config/fileUpload.js";
+import { vaildateCreateUser,vaildateUpdateUser } from '../middleware/userVaildation.js';
+import { vaildateCreateMeterRecord ,vaildateUpdateMeterRecord} from '../middleware/meterRecordVaildation.js'
 
 const adminRoute = express.Router();
 
 adminRoute.get(GET_ALL_USERS, verifyToken, getAllusers);
-adminRoute.post(CREATE_USER, verifyToken, createUser);
-adminRoute.put(UPDATE_USER, verifyToken, updateUser);
+adminRoute.post(CREATE_USER, verifyToken, vaildateCreateUser, createUser);
+adminRoute.put(UPDATE_USER,verifyToken,vaildateUpdateUser, updateUser);
 adminRoute.patch(DELETE_USER, verifyToken, deleteUser);
 adminRoute.patch(CHANGE_ROLE, verifyToken, changeUserRole);
 
 adminRoute.get(GET_ALL_METERRECORD, verifyToken, getAllMeterRecord);
-adminRoute.post(CREATE_METERRECORD, verifyToken, createMeterRecord);
-adminRoute.put(UPDATE_METERRECORD, verifyToken, updateMeterRecord);
+adminRoute.post(CREATE_METERRECORD,  verifyToken, vaildateCreateMeterRecord, createMeterRecord);
+adminRoute.put(UPDATE_METERRECORD,  verifyToken, vaildateUpdateMeterRecord, updateMeterRecord);
 adminRoute.patch(DELETE_METERRECORD, verifyToken, deleteMeterRecord);
 
 adminRoute.post('/fileupload',verifyToken,upload.single('file'),fileHandler)
 
 export default adminRoute;
+
+
