@@ -1,6 +1,5 @@
 import db from '../config/dbConnection.js'
 
-
 const executeQuery = (query, parameter =[])=>{
      
     return new Promise((resolve,reject)=>{
@@ -13,8 +12,7 @@ const executeQuery = (query, parameter =[])=>{
       })
     });
    
-   }
-
+}
 
 
  const errorHandler = (message,statusCode)=>{

@@ -96,12 +96,24 @@ const createMeterInDB = async(meter_number,created_by)=>{
 
 }
 
-const getMeterNumberFromDB = async(meter_number,user_id)=>{
-    const query = `select * from meter where  meter_number = ? and user_id = ?`;
-    const result = await executeQuery(query,[meter_number,user_id]);
+
+const readingExitsInDB = async(user_id,reading_date)=>{
+    
+    const query = 'select user_id,reading_date from reading where is_deleted =0 and user_id = ? and reading_date = ?';
+    const result = await executeQuery(query,[user_id,reading_date]);
     return result;
+}
+
+const meterExitsInDB = async(meter_number)=>{
+    
+    const query = `select distinct m.meter_number , r.user_id, r.meter_id from meter as m left join reading as r on m.id = r.meter_id 
+where meter_number = ?`;
+const result = await executeQuery(query ,[meter_number]);
+return result;
 }
 
 
 
-export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB,getMeterRecordFromDB,createMeterRecordInDB,updateMeterRecordInDB,deleteReadingFromDB,getreadingByIdFromDB,getMeterRecordByIdandDate,createMeterInDB,restoreMeterInDB,getMeterNumberFromDB}
+export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB,getMeterRecordFromDB,createMeterRecordInDB,updateMeterRecordInDB,deleteReadingFromDB,getreadingByIdFromDB,getMeterRecordByIdandDate,createMeterInDB,restoreMeterInDB
+    ,meterExitsInDB,readingExitsInDB
+}
