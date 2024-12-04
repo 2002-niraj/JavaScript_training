@@ -2,7 +2,7 @@ const constants = {
     routes: {
       REGISTER_USER:'/register/user',
       LOGIN_USER:'/login/user',
-      PROFILE_USER:'/profile/user/:meter_number',
+      METER_READINGS:'/meterReading/user/:meter_number',
       GET_ALL_USERS:'/users',
       CREATE_USER:'/user/create',
       UPDATE_USER:'/user/:id',

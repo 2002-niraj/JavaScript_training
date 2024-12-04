@@ -9,7 +9,7 @@ import {
   getAllMeterRecord,
   createMeterRecord,
   updateMeterRecord,
-  deleteMeterRecord,fileHandler
+  deleteMeterRecord,fileHandler,createMeter
 } from "../controllers/adminController.js";
 
 import constant from "../constant/constant.js";
@@ -37,11 +37,12 @@ adminRoute.put(UPDATE_USER,verifyToken,vaildateUpdateUser, updateUser);
 adminRoute.patch(DELETE_USER, verifyToken, deleteUser);
 adminRoute.patch(CHANGE_ROLE, verifyToken, changeUserRole);
 
+adminRoute.post('/createMeter',verifyToken,createMeter)
 adminRoute.get(GET_ALL_METERRECORD, verifyToken, getAllMeterRecord);
+
 adminRoute.post(CREATE_METERRECORD,  verifyToken, vaildateCreateMeterRecord, createMeterRecord);
 adminRoute.put(UPDATE_METERRECORD,  verifyToken, vaildateUpdateMeterRecord, updateMeterRecord);
 adminRoute.patch(DELETE_METERRECORD, verifyToken, deleteMeterRecord);
-
 adminRoute.post('/fileupload',verifyToken,upload.single('file'),fileHandler)
 
 export default adminRoute;

@@ -17,7 +17,7 @@ const updateUserInDB = async(name,email,contact,city,address,updated_by,id)=>{
  }
 const getUserByIdFromDB = async(id)=>{
         
-    const query = 'select * from user_details where id = ? and is_deleted = 0';
+    const query = 'select id,name,contact,city,address,created_by from user_details where id = ? and is_deleted = 0';
     const result = await executeQuery(query,[id]);
     return result;
 }
@@ -34,20 +34,25 @@ const changeRoleInDB = async(id,role_id)=>{
     const result = await executeQuery(query,[role_id,id]);
     return result;
 }
+
+const getMeterNumber = async(meter_number)=>{
+    const query = `select id,meter_number,is_deleted from meter where meter_number = ?`;
+    const result = await executeQuery(query,[meter_number]);
+    return result;
+}
 const getMeterRecordFromDB = async()=>{
 
-      const query = `select r.id, m.id as meter_id, m.meter_number,r.user_id,r.reading_value, DATE_FORMAT(r.reading_date,'%Y-%m-%d') as reading_date
-from meter as m left join reading as r  on m.id = r.meter_id
-where m.is_deleted =0`
+      const query = `select umm.user_id,umm.meter_id,mr.reading_value,mr.reading_date from 
+      user_meter_mapping umm join meter_reading mr on umm.id = mr.user_meter_id 
+      where mr.is_deleted =0`;
       const result = await executeQuery(query);
       return result;
 }
 
 const createMeterRecordInDB= async(user_id,meter_id,reading_value,reading_date,email)=>{
-
     const query = `insert into reading (user_id,meter_id,reading_value,reading_date,created_by,updated_by)
      values (?,?,?,?,?,?)`;
-    const result = await executeQuery(query,[user_id,meter_id,reading_value,reading_date,email,email]);
+    const result = await executeQuery(query,[Number(user_id),meter_id,reading_value,reading_date,email,email]);
     return result;
 }
 
@@ -88,21 +93,7 @@ const restoreMeterInDB = async(user_id,reading_value,reading_date,id)=>{
      return result;
 }
 
-const createMeterInDB = async(meter_number,created_by)=>{
-    const query = `insert into meter (meter_number,created_by,updated_by)
-    values (?,?,?)`;
-    const result = await executeQuery(query,[meter_number,created_by,created_by]);
-    return result;
 
-}
-
-
-const readingExitsInDB = async(user_id,reading_date)=>{
-    
-    const query = 'select user_id,reading_date from reading where is_deleted =0 and user_id = ? and reading_date = ?';
-    const result = await executeQuery(query,[user_id,reading_date]);
-    return result;
-}
 
 const meterExitsInDB = async(meter_number)=>{
     
@@ -114,6 +105,6 @@ return result;
 
 
 
-export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB,getMeterRecordFromDB,createMeterRecordInDB,updateMeterRecordInDB,deleteReadingFromDB,getreadingByIdFromDB,getMeterRecordByIdandDate,createMeterInDB,restoreMeterInDB
-    ,meterExitsInDB,readingExitsInDB
+export {getAllUserFromDB,updateUserInDB,getUserByIdFromDB,deleteEventFromDB,changeRoleInDB,getMeterRecordFromDB,createMeterRecordInDB,updateMeterRecordInDB,deleteReadingFromDB,getreadingByIdFromDB,getMeterRecordByIdandDate,restoreMeterInDB
+    ,meterExitsInDB, getMeterNumber
 }

@@ -54,6 +54,16 @@ const vaildateCreateMeterRecord = (req, res, next) => {
   next();
 };
 
+const vaildateFileMeterRecord = (req,res,next)=>{
+  const { error } =  createMeterRecordSchema.validate({user_id,meter_number,reading_value,reading_date});
+
+  if (error) {
+     //console.log(error)
+    return res.status(400).send({ message: error.details[0].message });
+  }
+  next();
+}
+
 const vaildateUpdateMeterRecord = (req, res, next) => {
   const { error } =   updateMeterRecordSchema.validate(req.body);
 
@@ -66,4 +76,4 @@ const vaildateUpdateMeterRecord = (req, res, next) => {
 
 
 
-export { vaildateCreateMeterRecord, vaildateUpdateMeterRecord };
+export { vaildateCreateMeterRecord,vaildateFileMeterRecord , vaildateUpdateMeterRecord };

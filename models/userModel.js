@@ -8,7 +8,7 @@ const getUserFromDB = async (email) => {
 
 const getUserForLogin = async (email) => {
   const query =
-    "select id,name,email,password,role_id,contact from user_details where email = ? and is_deleted =0";
+    "select id,name,email,password,role_id,contact,address,city from user_details where email = ? and is_deleted =0";
   const result = await executeQuery(query, [email]);
   return result;
 };
@@ -20,10 +20,9 @@ const restoreUserInDB = async (
   password,
   contact,
   city,
-  address,created_by
+  address,
+  created_by
 ) => {
-
-
   const query = `update user_details
   set name=?, email=?,password=?,contact=?,city=?,address=?,created_by=?,updated_by=?,
   is_deleted = 0 where id = ?`;
@@ -36,7 +35,7 @@ const restoreUserInDB = async (
     address,
     created_by,
     created_by,
-    id
+    id,
   ]);
   return result;
 };
@@ -48,19 +47,16 @@ const restoreMeterInDB = async (id, meter_number, email) => {
   return result;
 };
 
-
 const registerUserInDB = async (
   name,
   email,
   password,
   contact,
   city,
-  address,created_by
+  address,
+  created_by
 ) => {
-    
-  if(created_by==null){
-      created_by = email
-  }
+  
   const query =
     "insert into user_details (name,email,password,contact,city,address,created_by,updated_by) values (?,?,?,?,?,?,?,?)";
   const result = await executeQuery(query, [
@@ -71,17 +67,12 @@ const registerUserInDB = async (
     city,
     address,
     created_by,
-    created_by
+    created_by,
   ]);
   return result;
 };
 
-const getUserDetails = async (user_id) => {
-  const query =
-    "select id,name,email,city,role_id, address from user_details where id = ? and is_deleted = 0";
-  const result = await executeQuery(query, user_id);
-  return result;
-};
+
 
 const addInMeter = async (meter_number, email) => {
   const query =
@@ -96,33 +87,51 @@ const getMeterNumberFromDB = async (meter_number) => {
   return result;
 };
 
-const getMeterfromNumber = async (meter_number) => {
-  const query = " select id,meter_number from meter where meter_number = ?";
-  const result = await executeQuery(query, [meter_number]);
+
+const userMeterMapping = async (user_id, meter_id, created_by) => {
+  const query = `insert into user_meter_mapping(user_id,meter_id,created_by,updated_by)
+  value (?,?,?,?)`;
+  const result = await executeQuery(query, [
+    user_id,
+    meter_id,
+    created_by,
+    created_by,
+  ]);
   return result;
 };
 
-const getReadingByUserID = async (meter_id) => {
-
-  if(meter_id==null){
-    return;
-  }
-  
-  const query =
-    "select reading_value,reading_date from reading where meter_id = ?";
-  const result = await executeQuery(query, [meter_id]);
-  return result;
+const getMeterNumber = async (user_id) => {
+  const query = `select m.meter_number from user_details ud join user_meter_mapping umm on ud.id = umm.user_id 
+join meter m on umm.meter_id  = m.id where ud.id = ?`;
+const result = await executeQuery(query,[user_id]);
+return result;
 };
+
+const getUserMeterReading = async(user_id,meter_number)=>{
+  const query = `select mr.user_meter_id ,mr.reading_value,mr.reading_date from user_details ud join user_meter_mapping umm on ud.id  = umm.user_id 
+join meter m on umm.meter_id  = m.id join meter_reading mr on umm.id = mr.user_meter_id 
+where ud.id  = ? and m.meter_number = ?`;
+
+const result = await executeQuery(query,[user_id,meter_number]);
+return result;
+}
+
+const createMeterInDB = async(meter_number,created_by)=>{
+  const query = `insert into meter (meter_number,created_by,updated_by)
+  values (?,?,?)`;
+  const result = await executeQuery(query,[meter_number,created_by,created_by]);
+  return result;
+
+}
 
 export {
   registerUserInDB,
   getUserFromDB,
-  getUserDetails,
   addInMeter,
   getMeterNumberFromDB,
-  getMeterfromNumber,
-  getReadingByUserID,
   getUserForLogin,
   restoreUserInDB,
-  restoreMeterInDB
+  restoreMeterInDB,
+  userMeterMapping,
+  getMeterNumber,getUserMeterReading,createMeterInDB
 };
