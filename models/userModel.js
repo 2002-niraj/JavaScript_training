@@ -1,12 +1,7 @@
 import { executeQuery } from "../helper/helper.js";
 
-const getUserFromDB = async (email) => {
-  const query = "select * from user_details where email = ?";
-  const result = await executeQuery(query, [email]);
-  return result;
-};
 
-const getUserForLogin = async (email) => {
+const getUserDetails = async (email) => {
   const query =
     "select id,name,email,password,role_id,contact,address,city from user_details where email = ? and is_deleted =0";
   const result = await executeQuery(query, [email]);
@@ -108,8 +103,9 @@ return result;
 };
 
 const getUserMeterReading = async(user_id,meter_number)=>{
-  const query = `select mr.user_meter_id ,mr.reading_value,mr.reading_date from user_details ud join user_meter_mapping umm on ud.id  = umm.user_id 
-join meter m on umm.meter_id  = m.id join meter_reading mr on umm.id = mr.user_meter_id 
+  const query = `select mr.reading_date,mr.reading_value,b.billing_amount,b.is_paid from user_details ud join user_meter_mapping umm on ud.id  = umm.user_id 
+join meter m on umm.meter_id  = m.id 
+join meter_reading mr on umm.id = mr.user_meter_id join billing b on mr.id = b.meter_reading_id 
 where ud.id  = ? and m.meter_number = ?`;
 
 const result = await executeQuery(query,[user_id,meter_number]);
@@ -126,10 +122,9 @@ const createMeterInDB = async(meter_number,created_by)=>{
 
 export {
   registerUserInDB,
-  getUserFromDB,
   addInMeter,
   getMeterNumberFromDB,
-  getUserForLogin,
+  getUserDetails,
   restoreUserInDB,
   restoreMeterInDB,
   userMeterMapping,

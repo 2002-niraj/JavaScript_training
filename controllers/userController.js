@@ -1,8 +1,6 @@
 import {
   registerUserInDB,
-  getUserFromDB,
-  getUserForLogin,
-  restoreUserInDB,
+  getUserDetails,
   userMeterMapping,
   getMeterNumber,
   getUserMeterReading,createMeterInDB
@@ -11,17 +9,17 @@ import { errorHandler, sendErrorResponse } from "../helper/helper.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
+import {isVaildId} from '../controllers/adminController.js'
+
+import {getUserByIdFromDB} from '../models/adminModel.js';
+
 import constant from "../constant/constant.js";
 const {
-  USER_ALREADY_EXIT,
   ERROR_IN_REGISTER,
   REGISTER_SUCESS,
   ACCOUNT_NOT_EXITS,
   WRONG_PASSWORD,
   LOGIN_SUCESS,
-  USER_NOT_FOUND,
-  USER_PROFILE,
-  METER_NOT_FOUND,
   ER_DUP_ENTRY
 } = constant.messages;
 
@@ -78,7 +76,10 @@ const registerUser = async (req, res) => {
   try {
     const userDetails = req.body;
 
-    //const userExits = await getUserFromDB(email);
+    const userExits = await getUserDetails(email);
+    if(userExits.length>0){
+      throw errorHandler("user already exists",400);
+    }
 
     const registerUser = await registerUserAndCreateMeter(userDetails,null);
 
@@ -103,7 +104,7 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const [user] = await getUserForLogin(email);
+    const [user] = await getUserDetails(email);
 
     if (!user) {
       throw errorHandler(ACCOUNT_NOT_EXITS, BAD_REQUEST);
@@ -119,18 +120,8 @@ const loginUser = async (req, res) => {
       process.env.SECRETKEY
     );
 
-    const meter_numbers = await getMeterNumber(user.id);
-
     res.status(SUCCESS).json({
       message: LOGIN_SUCESS,
-      userdata: {
-        name: user.name,
-        email: user.email,
-        contact: user.contact,
-        city: user.city,
-        address: user.address,
-        meter_numbers: meter_numbers,
-      },
       token,
     });
   } catch (error) {
@@ -138,8 +129,34 @@ const loginUser = async (req, res) => {
   }
 };
 
+const userProfile = async(req,res)=>{
+  try{
+       const {user_id} = req.params;
+       isVaildId(user_id);
+
+       const userDetails = await getUserByIdFromDB(user_id);
+       if(!userDetails.length){
+        throw errorHandler("userdetails not found",404);
+       }
+       const meter_numbers_data = await getMeterNumber(user_id);
+       const meter_numbers = meter_numbers_data.map((meter)=>meter.meter_number)
+
+
+       res.status(200).json({
+        message:"userProfile",
+        userDetails:{...userDetails[0], meter_numbers}
+        
+       })
+  }
+  catch(error){
+      sendErrorResponse(res,error);
+  }
+
+}
+
 const userMeterRecord = async (req, res) => {
   try {
+
     const userId = req.user.user_id;
     const { meter_number } = req.params;
   //  console.log(meter_number);
@@ -159,4 +176,4 @@ const userMeterRecord = async (req, res) => {
   }
 };
 
-export { registerUser, loginUser, userMeterRecord ,registerUserAndCreateMeter};
+export { registerUser, loginUser, userMeterRecord ,registerUserAndCreateMeter,userProfile};

@@ -7,13 +7,11 @@ const createMeterRecordSchema = joi.object({
       "number.base": "user_id must be vaild number"
     }),
 
-    meter_number:joi.string().pattern(/^[a-zA-Z]/).min(5).max(15).required().messages({
-      "string.empty": "meter_number is required",
-      "string.pattern.base": "meter_number should be start with letter",
-       "string.max": "meter_number character limit exceeded",
-        "string.min":"meter_number  length must be 5 character long"
-    }),
-
+  meter_id:joi.number().integer().required()
+  .messages({
+    "number.base": "meter_id must be vaild number"
+  })
+ ,
   reading_value: joi.number().greater(100).required().messages({
           "number.base": "user_id must be vaild number"
   }),
@@ -28,18 +26,15 @@ const createMeterRecordSchema = joi.object({
 
 const  updateMeterRecordSchema = joi.object({
       
-  user_id: joi.number().integer().required()
-  .messages({
-    "number.base": "user_id must be vaild number"
-  }),
-
 reading_value: joi.number().greater(100).required().messages({
         "number.base": "user_id must be vaild number"
 }),
 
 reading_date:joi.date().required().messages({
+        "any.required":"reading_date is requireds",
         "string.empty": "date is required",
-        "date.base": "date must be a valid.",
+        "date.base": "date must be a valid."
+
 })
 
 });
@@ -54,15 +49,13 @@ const vaildateCreateMeterRecord = (req, res, next) => {
   next();
 };
 
-const vaildateFileMeterRecord = (req,res,next)=>{
-  const { error } =  createMeterRecordSchema.validate({user_id,meter_number,reading_value,reading_date});
+const vaildateMeterRecordForFile = joi.array().items(createMeterRecordSchema).min(1).required()
+.messages({
+  "array.min":"at least one meter record is required",
+  "array.base":"data must be an array"
+});
 
-  if (error) {
-     //console.log(error)
-    return res.status(400).send({ message: error.details[0].message });
-  }
-  next();
-}
+
 
 const vaildateUpdateMeterRecord = (req, res, next) => {
   const { error } =   updateMeterRecordSchema.validate(req.body);
@@ -76,4 +69,4 @@ const vaildateUpdateMeterRecord = (req, res, next) => {
 
 
 
-export { vaildateCreateMeterRecord,vaildateFileMeterRecord , vaildateUpdateMeterRecord };
+export { vaildateCreateMeterRecord,vaildateUpdateMeterRecord,vaildateMeterRecordForFile };

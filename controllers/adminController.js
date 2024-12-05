@@ -10,21 +10,26 @@ import {
   updateMeterRecordInDB,
   deleteReadingFromDB,
   getreadingByIdFromDB,
-  meterExitsInDB,
+  getMeterNumberFromId,
+  getSpecificMeterRecord,
+  getUserMapping,
+  createBillingRecordInDB,
+  getMeterRecordPerMonth,getUserMeterId , updateBillingRecordInDB
 } from "../models/adminModel.js";
-import bcrypt from "bcrypt";
+
 import {
-  getUserFromDB,
-  registerUserInDB,
-  restoreUserInDB,createMeterInDB,userMeterMapping
+  createMeterInDB,
+  userMeterMapping,
+  getUserDetails,
 } from "../models/userModel.js";
 
-import {registerUserAndCreateMeter} from '../controllers/userController.js'
+import { registerUserAndCreateMeter } from "../controllers/userController.js";
 
 import constant from "../constant/constant.js";
-import { vaildateCreateMeterRecord } from "../middleware/meterRecordVaildation.js";
+
 import csvParser from "csv-parser";
 import { Readable } from "stream";
+import { vaildateMeterRecordForFile } from "../middleware/meterRecordVaildation.js";
 
 const { SUCCESS, BAD_REQUEST, NOT_FOUND, CREATED, ER_DUP_ENTRY } =
   constant.codes;
@@ -63,17 +68,19 @@ const createUser = async (req, res) => {
 
     const userDetails = req.body;
 
-    //const userExits = await getUserFromDB(email);
-     
-    const registerUserByAdmin = await registerUserAndCreateMeter(userDetails,created_by);
+    const userExits = await getUserDetails(email);
+    if (userExits.length > 0) {
+      throw errorHandler("email id already exists", 400);
+    }
+    const registerUserByAdmin = await registerUserAndCreateMeter(
+      userDetails,
+      created_by
+    );
 
     res.status(CREATED).json({
-      message:REGISTER_SUCESS,
-      user:registerUserByAdmin
-    })
-
-    
-    
+      message: REGISTER_SUCESS,
+      user: registerUserByAdmin,
+    });
   } catch (error) {
     if (error.code == "ER_DUP_ENTRY") {
       return res.status(BAD_REQUEST).send({
@@ -85,48 +92,46 @@ const createUser = async (req, res) => {
   }
 };
 
-
-const createMeter = async(req,res)=>{
-
-   try{
-
+const createMeter = async (req, res) => {
+  try {
     checkAccess(req.user.role_id);
     const created_by = req.user.email;
 
     const { user_id } = req.body;
 
-    isVaildId(user_id );
+    isVaildId(user_id);
 
-  const userExit = await getUserByIdFromDB(user_id);
-  if(!userExit.length){
-    throw errorHandler("user not exits, check again!",404);
-  }
-    
-  const meter_number = "M" + [Date.now() + Math.floor(Math.random() * 10)];
-
-  const createMeter = await createMeterInDB(meter_number,  created_by);
-  if (!createMeter) {
-    throw errorHandler("error in creating meter record!", 400);
-  }
-
-  const meter_id = createMeter.insertId;
-
-  const user_meter_map = await userMeterMapping(user_id, meter_id, created_by);
-  if (!user_meter_map) {
-    throw errorHandler("error in creating user_meter_map");
-  }
-
-  res.status(CREATED).json({
-    message:"meter number created sucessfully",
-    userData:{
-       ...userExit,
-       meter_number:meter_number
+    const userExit = await getUserByIdFromDB(user_id);
+    if (!userExit.length) {
+      throw errorHandler("user not exits, check again!", 404);
     }
-  })
 
-   }
-   catch(error){
+    const meter_number = "M" + [Date.now() + Math.floor(Math.random() * 10)];
 
+    const createMeter = await createMeterInDB(meter_number, created_by);
+    if (!createMeter) {
+      throw errorHandler("error in creating meter record!", 400);
+    }
+
+    const meter_id = createMeter.insertId;
+
+    const user_meter_map = await userMeterMapping(
+      user_id,
+      meter_id,
+      created_by
+    );
+    if (!user_meter_map) {
+      throw errorHandler("error in creating user_meter_map");
+    }
+
+    res.status(CREATED).json({
+      message: "meter number created sucessfully",
+      userData: {
+        ...userExit,
+        meter_number: meter_number,
+      },
+    });
+  } catch (error) {
     if (error.code == "ER_DUP_ENTRY") {
       return res.status(BAD_REQUEST).send({
         message: ER_DUP_ENTRY,
@@ -134,10 +139,8 @@ const createMeter = async(req,res)=>{
     }
 
     sendErrorResponse(res, error);
-
-   }
-
-}
+  }
+};
 
 const updateUser = async (req, res) => {
   try {
@@ -177,12 +180,10 @@ const updateUser = async (req, res) => {
     }
     sendErrorResponse(res, error);
   }
-
 };
 
 const deleteUser = async (req, res) => {
   try {
-
     checkAccess(req.user.role_id);
 
     const { id } = req.params;
@@ -207,8 +208,6 @@ const deleteUser = async (req, res) => {
     } else {
       throw errorHandler("user not found", 404);
     }
-
-
   } catch (error) {
     sendErrorResponse(res, error);
   }
@@ -243,21 +242,18 @@ const changeUserRole = async (req, res) => {
       throw errorHandler("user not found", NOT_FOUND);
     }
   } catch (error) {
-
     if (error.code == "ER_NO_REFERENCED_ROW_2") {
       return res.status(BAD_REQUEST).send({
         message: "role not exits,check again!",
-    });
-  } else{
-    sendErrorResponse(res, error);
+      });
+    } else {
+      sendErrorResponse(res, error);
+    }
   }
-
-  }
-};  
+};
 
 const getAllMeterRecord = async (req, res) => {
   try {
-
     checkAccess(req.user.role_id);
 
     const meterRecords = await getMeterRecordFromDB();
@@ -270,137 +266,104 @@ const getAllMeterRecord = async (req, res) => {
   }
 };
 
-const storeMeterRecord = async (
+const createMeterBillingRecord = async (
   res,
-  user_id,
-  meter_id,
-  reading_value,
-  reading_date,
-  email
+  meterRecord,
+  user_meter_id,
+  created_by
 ) => {
-  try {
+  const { user_id, meter_id, reading_value, reading_date } = meterRecord;
 
-    const createMeterRecord = await createMeterRecordInDB(
-      user_id,
-      meter_id,
-      reading_value,
-      reading_date,
-      email
-    );
-
-    if (!createMeterRecord) {
-      throw errorHandler("error in storing meterRecord", 404);
-    }
-
-    return res.status(SUCCESS).json({
-      message: "meterRecord created sucessfully",
-      meterRecord: {
-        user_id,
-        meter_id,
-        reading_value,
-        reading_date,
-      },
-    });
-  } catch (error) {
-
-    if (error.code == "ER_DUP_ENTRY") {
-      return res.status(BAD_REQUEST).send({
-        message: "record already exits",
-      });
-    } else if (error.code == "ER_NO_REFERENCED_ROW_2") {
-      return res.status(BAD_REQUEST).send({
-        message: "user_id is not exits",
-      });
-    } else {
-      sendErrorResponse(res, error);
-    }
-
+  const createMeterRecord = await createMeterRecordInDB(
+    user_meter_id,
+    reading_value,
+    reading_date,
+    created_by
+  );
+  if (!createMeterRecord) {
+    throw errorHandler("error in creating meter record", 400);
   }
+
+  const meter_reading_id = createMeterRecord.insertId;
+
+  const createBillingRecord = await createBillingRecordInDB(
+    meter_reading_id,
+    reading_value * 5,
+    created_by
+  );
+
+  if (!createBillingRecord) {
+    throw errorHandler("error in creating billing record", 400);
+  }
+
+  res.status(200).json({
+    message: " meter record created sucessfully!",
+    meterRecord: {
+      user_id: user_id,
+      meter_id: meter_id,
+      reading_value: reading_value,
+      reading_date: reading_date,
+    },
+  });
 };
-
-// const storeMeterRecordViaFile = async(
-//   res,
-//   user_id,
-//   meter_id,
-//   reading_value,
-//   reading_date,
-//   email
-// ) => {
-
-//       try{
-
-//         const createMeterRecord = await createMeterRecordInDB(
-//           user_id,
-//           meter_id,
-//           reading_value,
-//           reading_date,
-//           email
-//         );  
-//         if (!createMeterRecord) {
-//           throw errorHandler("error in storing meterRecord", 404);
-//         }
-
-//       }
-//       catch(error){
-           
-//         if (error.code == "ER_DUP_ENTRY") {
-//           return res.status(BAD_REQUEST).send({
-//             message: "record already exits",
-//           });
-//         } else if (error.code == "ER_NO_REFERENCED_ROW_2") {
-//           return res.status(BAD_REQUEST).send({
-//             message: "user_id is not exits",
-//           });
-//         } else {
-//           sendErrorResponse(res, error);
-//         }
-
-//       }
-// };
 
 const createMeterRecord = async (req, res) => {
   try {
+
     checkAccess(req.user.role_id);
 
-    const { user_id, meter_number, reading_value, reading_date } = req.body;
-      
-    const meterExits = await meterExitsInDB(meter_number);
-
-    if (!meterExits.length) {
-      const createMeter = await createMeterInDB(meter_number, req.user.email);
-      if (!createMeter) {
-        throw errorHandler("error in storing meter number", 404);
-     }
-      const meter_id = createMeter.insertId;
-      storeMeterRecord(
-        res,
-        user_id,
-        meter_id,
-        reading_value,
-        reading_date,
-        req.user.email
-      );
-    } else if (meterExits[0].user_id == user_id) {
-      const meter_id = meterExits[0].meter_id;
-      storeMeterRecord(
-        res,
-        user_id,
-        meter_id,
-        reading_value,
-        reading_date,
-        req.user.email
-      );
-    } else {
-      throw errorHandler("meter number already exits of another user", 400);
+    const created_by = req.user.email;
+    const { user_id, meter_id, reading_value, reading_date } = req.body;
+    
+    const userExists = await getUserByIdFromDB(user_id);
+    if (!userExists.length) {
+      throw errorHandler("User does not exits", 404);
     }
+
+    const meterExists = await getMeterNumberFromId(meter_id);
+    if (!meterExists.length) {
+      throw errorHandler("Meter does not exits", 404);
+    }
+
+    const user_meterExists = await getUserMapping(user_id, meter_id);
+    if(!user_meterExists.length){
+      throw errorHandler("this meter is not allocate to current user")
+    }
+
+    const readingExists = await getSpecificMeterRecord(
+      user_id,
+      meter_id,
+      reading_date
+    );
+    if (readingExists.length) {
+      throw errorHandler("Meter record for this date already exists", 409);
+    }
+
+    const exitingReading = await getMeterRecordPerMonth(
+      user_id,
+      meter_id,
+      reading_date
+    );
+    if (exitingReading.length) {
+      throw errorHandler(
+        "meter record for this meter already exists for this month",
+        409
+      );
+    }
+
+    const meterRecord = req.body;
+    const user_meter_id = user_meterExists[0].id;
+
+    await createMeterBillingRecord(res,meterRecord,user_meter_id,created_by);
+
   } catch (error) {
     if (error.code == "ER_DUP_ENTRY") {
-      return res.status(BAD_REQUEST).send({
-        message: "record already exits",
+      return res.status(409).send({
+        message: "Duplicate entry: record already exits",
       });
     } else if (error.code == "ER_NO_REFERENCED_ROW_2") {
       return res.status(BAD_REQUEST).send({
-        message: "user_id is not exits",
+        message: "user or meter does not exist",
       });
     } else {
       sendErrorResponse(res, error);
@@ -408,102 +371,179 @@ const createMeterRecord = async (req, res) => {
   }
 };
 
-// const insertFileRecord = async (req, res, rows,email) => {
-//   try {
-//     for (const row of rows) {
-//       const { user_id, meter_number, reading_value, reading_date } = row;
+const meterRecordExitInFile = async (meterRecords) => {
+           
+        meterRecords.map( async(meterRecord) => {
+          const { user_id, meter_id, reading_value, reading_date } = meterRecord;
       
+          const userExists = await getUserByIdFromDB(user_id);
+          if (!userExists.length) {
+            return errorHandler("user does not exits",404)
+          }
       
-//        const meterExits = await meterExitsInDB(meter_number);
+          const meterExists = await getMeterNumberFromId(meter_id);
+          if (!meterExists.length) {
+            return errorHandler("Meter does not exits", 404);
+          }
 
-//       if (!meterExits.length) {
+          const user_meterExists = await getUserMapping(user_id, meter_id);
+             if(!user_meterExists.length){
+              return errorHandler("this meter is not allocate to current user")
+            }
+      
+          const readingExists = await getSpecificMeterRecord(
+            user_id,
+            meter_id,
+            reading_date
+          );
+          if (readingExists.length) {
 
-//         const createMeter = await createMeterInDB(meter_number, email);
-//         if (!createMeter) {
-//           throw errorHandler("error in storing meter number", 404);
-//         }
-//         const meter_id = createMeter.insertId;
-//        await storeMeterRecordViaFile(
-//           res,
-//           user_id,
-//           meter_id,
-//          reading_value,
-//          reading_date,
-//           email
-//         );
-//       } else if (meterExits[0].user_id == user_id) {
-//         const meter_id = meterExits[0].meter_id;
-//         console.log(meter_id);
-//         await storeMeterRecordViaFile(
-//           res,
-//           user_id,
-//           meter_id,
-//           reading_value,
-//           reading_date,
-//           email
-//         );
-//       } 
-//       else {
-//         throw errorHandler("meter number already exits of another user", 400);
-//       }
+            return errorHandler("Meter record for this date already exists", 409);
+          }
+      
+          const exitingReading = await getMeterRecordPerMonth(
+            user_id,
+            meter_id,
+            reading_date
+          );
+          if (exitingReading.length) {
+            return errorHandler(
+              "meter record for this meter already exists for this month",
+              409
+            );
+          }
+        });
 
-//     }
-//   } catch (error) {
-//     if (error.code == "ER_DUP_ENTRY") {
-//       return res.status(BAD_REQUEST).send({
-//         message: "record already exits",
-//       });
-//     } else if (error.code == "ER_NO_REFERENCED_ROW_2") {
-//       return res.status(BAD_REQUEST).send({
-//         message: "user_id is not exits",
-//       });
-//     } else {
-//       sendErrorResponse(res, error);
-//     }
-//   }
-// };
+      
+};
 
+const streamReader = async(stream)=>{
+
+  const meterRecords = [];
+  let firstRowSkip = true;
+  stream
+  .pipe(
+    csvParser({
+      headers: true,
+      mapHeaders: ({ header }) => header.trim().toLowerCase(),
+    })
+  )
+  .on("data", async(row) => {
+    if (firstRowSkip) {
+      firstRowSkip = false;
+      return;
+    }
+
+    const values = Object.values(row)
+      .join(" ")
+      .split(/\s+/)
+      .map((value) => value.trim());
+    const [user_id, meter_id, reading_value, reading_date] = values;
+
+    meterRecords.push({
+      user_id: parseInt(user_id, 10),
+      meter_id: parseInt(meter_id, 10),
+      reading_value: parseFloat(reading_value),
+      reading_date,
+    });
+  })
+  
+  return meterRecords;
+
+}
 
 
 const fileHandler = async (req, res) => {
   try {
     checkAccess(req.user.role_id);
+
     if (!req.file) {
       throw errorHandler("No file uploaded", 400);
     }
 
-    const rows = [];
+    if (req.file.mimetype !== "text/csv") {
+      throw errorHandler(
+        "Invalid file type. Only .csv files are allowed.",
+        400
+      );
+    }
+
     const { buffer } = req.file;
-    let firstRowSkip = true;
 
     const stream = Readable.from(buffer.toString());
-    stream
-      .pipe(
-        csvParser({
-          headers: true,
-          mapHeaders: ({ header }) => header.trim().toLowerCase(),
-        })
-      )
-      .on("data", (row) => {
-        if (firstRowSkip) {
-          firstRowSkip = false;
-          return;
-        }
-        const values = Object.values(row)
-          .join(" ")
-          .split(/\s+/)
-          .map((value) => value.trim());
-        const [user_id, meter_number, reading_value, reading_date] = values;
-        rows.push({ user_id, meter_number, reading_value, reading_date });
-      })
-      .on("end", async () => {
-        console.log("parsed rows:", rows);
 
-        await insertFileRecord(req, res, rows,req.user.email);
+    const meterRecords = await streamReader(stream)
+      
+    //console.log(meterRecords);
 
-        res.status(200).json({ message: "sucessfully all", data: rows });
-      });
-  } catch (error) {
+    const { error } = vaildateMeterRecordForFile.validate(meterRecords);
+
+      if (error) {
+        return res.status(400).json({
+          message: "Validation failed",
+          details: error.message
+        });
+      }
+      
+    //  meterRecords.map( async(meterRecord) => {
+    //     const { user_id, meter_id, reading_value, reading_date } = meterRecord;
+    
+    //     const userExists = await getUserByIdFromDB(user_id);
+    //     if (!userExists.length) {
+
+    //       return res.status(404).json({
+    //         message:"Meter does not exits"
+    //       });
+
+    //     }
+    
+    //     const meterExists = await getMeterNumberFromId(meter_id);
+    //     if (!meterExists.length) {
+    //       //throw errorHandler("Meter does not exits", 404);
+    //      return res.status(404).json({
+    //         message:"Meter does not exits"
+    //       });
+    //     }
+
+    //     const user_meterExists = await getUserMapping(user_id, meter_id);
+    //        if(!user_meterExists.length){
+    //         //throw errorHandler("this meter is not allocate to current user",404)
+    //         return res.status(404).json({
+    //           message:"Meter does not exits"
+    //         });
+    //       }
+    
+    //     const readingExists = await getSpecificMeterRecord(
+    //       user_id,
+    //       meter_id,
+    //       reading_date
+    //     );
+    //     if (readingExists.length) {
+
+    //       return res.status(404).json({
+    //         message:"Meter does not exits"
+    //       });
+    //     }
+    
+    //     const exitingReading = await getMeterRecordPerMonth(
+    //       user_id,
+    //       meter_id,
+    //       reading_date
+    //     );
+    //     if (exitingReading.length) {
+    //       return res.status(404).json({
+    //         message:"Meter does not exits"
+    //       });
+    //     }
+         
+         
+    //   });
+
+    
+   res.status(200).json({ message: "File processed successfully", data: meterRecords});
+
+  } 
+  catch (error) {
     sendErrorResponse(res, error);
   }
 };
@@ -513,29 +553,48 @@ const updateMeterRecord = async (req, res) => {
     checkAccess(req.user.role_id);
     const { id } = req.params;
 
-    const { user_id, reading_value, reading_date } = req.body;
+    const {reading_value, reading_date } = req.body;
     const updated_by = req.user.email;
 
     isVaildId(id);
 
-    const meterReadingExits = await getreadingByIdFromDB(id);
-    if (!meterReadingExits.length) {
-      throw errorHandler("meter record not found", NOT_FOUND);
+    const user_meter_id = await getUserMeterId(id);
+
+    if(!getUserMeterId.length){
+      throw errorHandler("meter Record not exits",400);
+    }
+
+    const meter_id = user_meter_id[0].meter_id;
+    const user_id  = user_meter_id[0].user_id;
+
+    const readingExists = await getSpecificMeterRecord(
+      user_id,
+      meter_id,
+      reading_date
+    );
+    if (readingExists.length) {
+      throw errorHandler("Meter record for this date already exists", 409);
     }
 
     const updateMeterRecord = await updateMeterRecordInDB(
-      user_id,
       reading_value,
       reading_date,
       updated_by,
       id
     );
 
+    
     if (updateMeterRecord.affectedRows > 0) {
-      res.status(200).send({ message: "meter record updated sucessfully" });
+
+      const updateBillingRecord = await updateBillingRecordInDB(reading_value*5,updated_by,id);
+      if(updateBillingRecord.affectedRows > 0){
+        res.status(200).send({ message: "meter record updated sucessfully" });
+      }
+      
     } else {
-      throw errorHandler("meter not found", NOT_FOUND);
+      throw errorHandler("meter_records not found", NOT_FOUND);
     }
+
   } catch (error) {
     if (error.code == "ER_DUP_ENTRY") {
       return res.status(BAD_REQUEST).send({
@@ -560,9 +619,8 @@ const deleteMeterRecord = async (req, res) => {
     isVaildId(id);
 
     const readingExits = await getreadingByIdFromDB(id);
-    //console.log(readingExits);
     if (!readingExits.length) {
-      throw errorHandler("meter record not found", 404);
+      throw errorHandler("Meter record does not exits", 404);
     }
 
     const readingData = await deleteReadingFromDB(id);
@@ -570,7 +628,7 @@ const deleteMeterRecord = async (req, res) => {
     if (readingData.affectedRows > 0) {
       res.status(200).send({ message: "meterRecord deleted sucessfully" });
     } else {
-      throw errorHandler("meter record not found", 404);
+      throw errorHandler("Meter record does not exits", 404);
     }
   } catch (error) {
     sendErrorResponse(res, error);
@@ -588,5 +646,6 @@ export {
   updateMeterRecord,
   deleteMeterRecord,
   fileHandler,
-  createMeter
+  createMeter,
+  isVaildId,
 };
