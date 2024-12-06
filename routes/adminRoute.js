@@ -23,7 +23,7 @@ const {
   CREATE_METERRECORD,
   UPDATE_METERRECORD,
   DELETE_METERRECORD,
-  CREATE_METER
+  CREATE_METER,FILE_UPLOAD
 } = constant.routes;
 
 import checkAccess from '../middleware/checkAccess.js'
@@ -48,7 +48,7 @@ adminRoute.get(GET_ALL_METERRECORD, verifyToken,checkAccess([roles.SUPERADMIN,ro
 adminRoute.post(CREATE_METERRECORD,  verifyToken, vaildateCreateMeterRecord, checkAccess([roles.SUPERADMIN,roles.ADMIN]), createMeterRecord);
 adminRoute.put(UPDATE_METERRECORD,  verifyToken, vaildateUpdateMeterRecord, checkAccess([roles.SUPERADMIN,roles.ADMIN]), updateMeterRecord);
 adminRoute.patch(DELETE_METERRECORD, verifyToken, checkAccess([roles.SUPERADMIN,roles.ADMIN]), deleteMeterRecord);
-adminRoute.post('/fileupload',verifyToken,checkAccess([roles.SUPERADMIN,roles.ADMIN]),upload.single('file'),fileHandler)
+adminRoute.post(FILE_UPLOAD,verifyToken,checkAccess([roles.SUPERADMIN,roles.ADMIN]),upload.single('file'),fileHandler)
 
 export default adminRoute;
 

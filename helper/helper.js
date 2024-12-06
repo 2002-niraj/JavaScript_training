@@ -3,6 +3,10 @@ import bcrypt from "bcrypt";
 
 import {registerUserInDB,createMeterInDB,userMeterMapping} from '../models/userModel.js'
 
+import {createMeterRecordInDB,createBillingRecordInDB} from '../models/adminModel.js'
+
+import csvParser from "csv-parser";
+
 import constant from "../constant/constant.js";
 const {
   ERROR_IN_REGISTER,
@@ -88,6 +92,75 @@ const isVaildId = (id) => {
    
  }  
 
+ const createMeterBillingRecord = async (
+  meterRecord,
+  user_meter_id,
+  created_by
+) => {
+  const {reading_value, reading_date } = meterRecord;
+
+  const createMeterRecord = await createMeterRecordInDB(
+    user_meter_id,
+    reading_value,
+    reading_date,
+    created_by
+  );
+  if (!createMeterRecord) {
+    throw errorHandler("error in creating meter record", 400);
+  }
+
+  const meter_reading_id = createMeterRecord.insertId;
+
+  const createBillingRecord = await createBillingRecordInDB(
+    meter_reading_id,
+    reading_value * 5,
+    created_by
+  );
+
+  if (!createBillingRecord) {
+    throw errorHandler("error in creating billing record", 400);
+  }
+
+  return meterRecord;
+
+
+};
+
+
+const streamReader = async (stream) => {
+  const meterRecords = [];
+  let firstRowSkip = true;
+  stream
+    .pipe(
+      csvParser({
+        headers: true,
+        mapHeaders: ({ header }) => header.trim().toLowerCase(),
+      })
+    )
+    .on("data", async (row) => {
+      if (firstRowSkip) {
+        firstRowSkip = false;
+        return;
+      }
+
+      const values = Object.values(row)
+        .join(" ")
+        .split(/\s+/)
+        .map((value) => value.trim());
+      const [user_id, meter_id, reading_value, reading_date] = values;
+
+      meterRecords.push({
+        user_id: parseInt(user_id, 10),
+        meter_id: parseInt(meter_id, 10),
+        reading_value: parseFloat(reading_value),
+        reading_date,
+      });
+    });
+
+  return meterRecords;
+};
+
+
 
  const sendErrorResponse =( res, error)=>{
     res.status(error.statusCode|| 500 ).send({
@@ -95,4 +168,4 @@ const isVaildId = (id) => {
     })
  }
 
- export {executeQuery,errorHandler,sendErrorResponse,registerUserAndCreateMeter,isVaildId}
+ export {executeQuery,errorHandler,sendErrorResponse,registerUserAndCreateMeter,isVaildId,createMeterBillingRecord,streamReader}
