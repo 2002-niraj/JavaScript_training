@@ -8,28 +8,23 @@ const getUserDetails = async (email) => {
   return result;
 };
 
-const registerUserInDB = async (
-  name,
-  email,
-  password,
-  contact,
-  city,
-  address,
-  created_by
-) => {
+const registerUserInDB = async (userDetails, hashedPassword, created_by) => {
+  const { name, email, contact, city, address } = userDetails;
   
   const query =
-    "insert into user_details (name,email,password,contact,city,address,created_by,updated_by) values (?,?,?,?,?,?,?,?)";
+    "INSERT INTO user_details (name, email, password, contact, city, address, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    
   const result = await executeQuery(query, [
     name,
     email,
-    password,
+    hashedPassword,   
     contact,
     city,
     address,
     created_by,
-    created_by,
+    created_by
   ]);
+  
   return result;
 };
 

@@ -43,7 +43,7 @@ const vaildateCreateMeterRecord = (req, res, next) => {
   const { error } =  createMeterRecordSchema.validate(req.body);
 
   if (error) {
-     //console.log(error)
+    
     return res.status(400).send({ message: error.details[0].message });
   }
   next();
@@ -61,7 +61,7 @@ const vaildateUpdateMeterRecord = (req, res, next) => {
   const { error } =   updateMeterRecordSchema.validate(req.body);
 
   if (error) {
-     //console.log(error)
+ 
     return res.status(400).send({ message: error.details[0].message });
   }
   next();

@@ -2,7 +2,7 @@ import mysql from 'mysql';
 import dotenv from 'dotenv';
 dotenv.config();
 import constant from "../constant/constant.js";
-const {CONNECTION_FAILED,CONNECTION_SUCESS} = constant.dbConstant
+const { CONNECTION_SUCCESS,CONNECTION_FAILED} = constant.dbConstant
 const {DB_HOST,DB_USER,DB_PASSWORD,DB_NAME } = process.env;
 const pool = mysql.createPool({
   host: DB_HOST,
@@ -19,7 +19,7 @@ pool.getConnection((error,connection)=>{
     if(error){
       console.error(CONNECTION_FAILED);
     }
-    console.log(CONNECTION_SUCESS);
+    console.log(CONNECTION_SUCCESS);
     connection.release(); 
   })
   

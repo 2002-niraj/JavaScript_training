@@ -1,11 +1,19 @@
 import { executeQuery } from "../helper/helper.js";
 
-const getAllUserFromDB = async () => {
-  const query = `select id,name,email,contact,city,address,role_id,created_at,created_by,updated_at,updated_by from user_details
-    where is_deleted = 0`;
-  const result = await executeQuery(query);
-  return result;
+const getAllUserFromDB = async (user_id,role_id) => {
+
+  if(user_id === 1 && role_id === 1){
+    const query = `select id,name,email,contact,city ,address,role_id,created_at,created_by from user_details where role_id !=1 and is_deleted = 0`;
+    const result = await executeQuery(query);
+    return result;
+  }
+  else{
+    const query = `select id,name,email,contact,city ,address,role_id,created_at,created_by from user_details where id != ? and role_id not in (1,2) and is_deleted = 0`;
+    const result = await executeQuery(query,[user_id]);
+    return result;
+  }
 };
+
 
 const updateUserInDB = async (
   name,
@@ -33,7 +41,7 @@ const getUserByIdFromDB = async (id) => {
   const query =
     "select id,name,email,contact,city,address,created_by from user_details where id = ? and is_deleted = 0";
   const result = await executeQuery(query, [id]);
-  return result;
+  return result[0];
 };
 
 const deleteEventFromDB = async (id) => {
@@ -190,6 +198,6 @@ export {
   getMeterNumberFromId,
   getSpecificMeterRecord,
   getUserMapping,
-  createBillingRecordInDB,
+  createBillingRecordInDB, 
   getMeterRecordPerMonth,getUserMeterId,updateBillingRecordInDB,getReadingByUserMeterId
 };
