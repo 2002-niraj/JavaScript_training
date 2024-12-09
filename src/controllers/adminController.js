@@ -31,7 +31,7 @@ import {
 } from "../models/userModel.js";
 
 import constant from "../constant/constant.js";
-const { REGISTER_SUCESS, USER_DETAILS_UPDATED, USER_DETAILS } =
+const { REGISTER_SUCESS, USER_DETAILS_UPDATED, USER_DETAILS ,ROLE_CHANGED,  USER_DETAILS_DELETED} =
   constant.messages.success;
 
 const roles = constant.roles;
@@ -40,9 +40,8 @@ const {
   USER_NOT_FOUND,
   USER_DETAILS_NOT_UPDATED,
   PERMISSION_DENIED,
-  USER_DETAILS_DELETED,
   USER_DETAILS_NOT_DELETED,
-  ROLE_NOT_EXISTS,ROLE_NOT_CHANGED,ROLE_CHANGED
+  ROLE_NOT_EXISTS,ROLE_NOT_CHANGED,METER_RECORD_NOT_FOUND,METER_NOT_FOUND
 } = constant.messages.error;
 
 const { SUCCESS, CREATED } = constant.codes.success;
@@ -80,7 +79,7 @@ const createUser = async (req, res) => {
     }
     const registerUserByAdmin = await registerUserAndCreateMeter(
       userDetails,
-      created_by
+      created_by,true
     );
 
     res.status(CREATED).json({
@@ -193,11 +192,11 @@ const deleteUser = async (req, res) => {
     isVaildId(id);
 
     const userExits = await getUserByIdFromDB(id);
-    if (!userExits.length) {
+    if (!userExits) {
       throw errorHandler(USER_NOT_FOUND, NOT_FOUND);
     }
 
-    const role_id_DB = userExits[0].role_id;
+    const role_id_DB = userExits.role_id;
 
     if (role_id_DB == 1) {
       throw errorHandler(PERMISSION_DENIED, FORBIDDEN);
@@ -207,8 +206,7 @@ const deleteUser = async (req, res) => {
 
     if (userData.affectedRows > 0) {
       res
-        .status(SUCCESS)
-        .json({ message: USER_DETAILS_DELETED, statusCode: SUCCESS });
+        .status(SUCCESS).json({ message: USER_DETAILS_DELETED, statusCode: SUCCESS });
     } else {
       throw errorHandler(USER_DETAILS_NOT_DELETED, INTERNAL_SERVER_ERROR);
     }
@@ -246,8 +244,6 @@ const changeUserRole = async (req, res) => {
     sendErrorResponse(res, error);
   }
 };
-
-
 
 const getAllMeterRecord = async (req, res) => {
   try {
@@ -307,6 +303,7 @@ const createMeterRecord = async (req, res) => {
 
     res.status(SUCCESS).json({
       message: METER_RECORD_SUCESS,
+      statusCode:SUCCESS,
       meterRecord: meter_reading,
     });
   } catch (error) {
@@ -373,7 +370,7 @@ const fileHandler = async (req, res) => {
         reading_date
       );
       if (readingExists.length) {
-        return res.status(409).json({
+        return res.status(CONFLICT).json({
           message: `Reading already exists for this meter error at file line ${lineNumber}`,
         });
       }
@@ -384,7 +381,7 @@ const fileHandler = async (req, res) => {
         reading_date
       );
       if (existingReading.length) {
-        return res.status(409).json({
+        return res.status(CONFLICT).json({
           message: `Reading already exists for this month error at file line ${lineNumber}`,
         });
       }
@@ -403,8 +400,9 @@ const fileHandler = async (req, res) => {
 
       console.log(meter_reading);
     }
-    res.status(200).json({
+    res.status(SUCCESS).json({
       message: FILE_PROCESSED,
+      statusCode:SUCCESS,
       data: meterRecords,
     });
   } catch (error) {
@@ -423,7 +421,7 @@ const updateMeterRecord = async (req, res) => {
 
     const meterReadingExits = await getreadingByIdFromDB(id);
     if (!meterReadingExits.length) {
-      throw errorHandler("meter record not found", NOT_FOUND);
+      throw errorHandler(METER_RECORD_NOT_FOUND, NOT_FOUND);
     }
 
     const updateMeterRecord = await updateMeterRecordInDB(
@@ -443,23 +441,18 @@ const updateMeterRecord = async (req, res) => {
       if (updateBillingRecord.affectedRows > 0) {
         res
           .status(SUCCESS)
-          .send({ message: "meter record updated sucessfully" });
+          .json({ message:  METER_RECORD_UPDATED,statusCode:SUCCESS });
       }
     } else {
       throw errorHandler("Meter record not updated", INTERNAL_SERVER_ERROR);
     }
   } catch (error) {
-    if (error.code == "ER_DUP_ENTRY") {
-      return res.status(CONFLICT).json({
-        message: "Meter record current date already exits",
-      });
-    } else {
-      sendErrorResponse(res, error);
-    }
+     sendErrorResponse(res,error)
   }
 };
 
 const deleteMeterRecord = async (req, res) => {
+
   try {
     const { id } = req.params;
 
@@ -473,14 +466,16 @@ const deleteMeterRecord = async (req, res) => {
     const readingData = await deleteReadingFromDB(id);
 
     if (readingData.affectedRows > 0) {
-      res.status(SUCCESS).json({ message: "meterRecord deleted sucessfully" });
+      res.status(SUCCESS).json({ message: "MeterRecord deleted sucessfully", statusCode:SUCCESS });
     } else {
       throw errorHandler("Meter record not deleted", INTERNAL_SERVER_ERROR);
     }
+
   } catch (error) {
     sendErrorResponse(res, error);
   }
 };
+
 
 export {
   getAllusers,

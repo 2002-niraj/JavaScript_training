@@ -37,10 +37,18 @@ const isVaildId = (id) => {
   }
 };
 
-const registerUserAndCreateMeter = async (userDetails, created_by) => {
-  const { password } = userDetails;
-
-  const hashedPassword = await bcrypt.hash(password, 10);
+const registerUserAndCreateMeter = async (userDetails, created_by,isAdmin = false) => {
+  
+  const { name,contact,password } = userDetails;
+   
+  let finalPassword;
+  if(isAdmin){
+    finalPassword = name.substring(0, 3).toLowerCase() + contact.slice(-3);
+  }
+  else{
+   finalPassword = password;
+  }
+  const hashedPassword = await bcrypt.hash(finalPassword, 10);
   const registerUser = await registerUserInDB(
     userDetails,
     hashedPassword,
@@ -148,8 +156,9 @@ const errorHandler = (message, statusCode) => {
 };
 
 const sendErrorResponse = (res, error) => {
-  res.status(error.statusCode || 500).send({
+  res.status(error.statusCode).send({
     message: error.message || "unknown error",
+    statusCode:error.statusCode || 500
   });
 };
 

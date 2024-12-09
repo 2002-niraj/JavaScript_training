@@ -33,7 +33,6 @@ const constants = {
       USER_DETAILS_NOT_FOUND: 'User details not found',
       ROLE_NOT_EXISTS: 'Role does not exist',
       ROLE_NOT_CHANGED: 'Role is not changed',
-      ROLE_CHANGED:"Role changed sucessfully!",
       USER_DETAILS_NOT_UPDATED: 'User details not updated',
       EMAIL_EXISTS: 'Email ID already exists',
       PERMISSION_DENIED: 'Access denied. You can\'t delete superadmin',
@@ -43,7 +42,8 @@ const constants = {
       VAILDATION_FAILED: 'Validation failed',
       METER_NOT_ALLOCATE_USER: 'This meter is not allocated to the current user',
       METER_RECORD_EXISTS: 'Meter record for this date already exists',
-      METER_RECORD_EXISTS_MONTH: 'Meter record for this meter already exists for this month'
+      METER_RECORD_EXISTS_MONTH: 'Meter record for this meter already exists for this month',
+      "METER_RECORD_NOT_FOUND":"Meter record not found"
     },
     success: {
       REGISTER_SUCESS: 'User Registered Successfully',

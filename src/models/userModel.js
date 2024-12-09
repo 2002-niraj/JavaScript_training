@@ -59,7 +59,7 @@ return result;
 const getUserMeterReading = async(user_id,meter_number)=>{
   const query = `select mr.reading_date,mr.reading_value,b.billing_amount,b.is_paid from user_details ud join user_meter_mapping umm on ud.id  = umm.user_id 
 join meter m on umm.meter_id  = m.id 
-join meter_reading mr on umm.id = mr.user_meter_id join billing b on mr.id = b.meter_reading_id 
+join meter_reading mr on umm.id = mr.user_meter_id join billing b on mr.reading_id = b.meter_reading_id 
 where ud.id  = ? and m.meter_number = ? AND ud.is_deleted = 0`;
 
 const result = await executeQuery(query,[user_id,meter_number]);

@@ -17,8 +17,7 @@ const createUserSchema = joi.object({
     "string.empty": "email is required",
   }),
 
-  password: joi.string().min(3).max(250).required().messages({
-    "string.empty": "password is required",
+  password: joi.string().min(3).max(250).messages({
     "string.max": "passoword character limit exceeded",
     "string.min": "password length must be 3 character long",
   }),
@@ -85,7 +84,7 @@ const vaildateCreateUser = (req, res, next) => {
 
   if (error) {
     return res.status(422).send({
-      message: error.details[0].message,
+      message: error.details[0].message,statusCode:422
     });
   }
   next();
@@ -95,7 +94,7 @@ const vaildateUpdateUser = (req, res, next) => {
   const { error } = updateUserSchema.validate(req.body);
 
   if (error) {
-    return res.status(422).send({ message: error.details[0].message });
+    return res.status(422).send({ message: error.details[0].message,statusCode:422 });
   }
   next();
 };
