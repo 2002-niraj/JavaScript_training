@@ -14,7 +14,6 @@ const getAllUserFromDB = async (user_id,role_id) => {
   }
 };
 
-
 const updateUserInDB = async (
   name,
   email,
@@ -44,11 +43,11 @@ const getUserByIdFromDB = async (id) => {
   return result[0];
 };
 
-const deleteEventFromDB = async (user_id,meter_id,reading_date) => {
-  const query = `UPDATE meter_records
+const deleteEventFromDB = async (id) => {
+  const query = `UPDATE user_details
        SET is_deleted = 1
-       WHERE user_id = ? AND meter_id = ? AND reading_date = ? AND is_deleted = 0`;
-  const result = await executeQuery(query, [user_id,meter_id,reading_date]);
+       WHERE id = ?`;
+  const result = await executeQuery(query, [id]);
   return result;
 };
 
@@ -61,9 +60,14 @@ const changeRoleInDB = async (id, role_id) => {
 
 
 const getMeterRecordFromDB = async () => {
-  const query = ` select mr.reading_id, umm.user_id ,m.meter_number,mr.reading_value,mr.reading_date,b.billing_amount,b.is_paid from meter_reading mr join billing b 
- on mr.reading_id  = b.meter_reading_id join user_meter_mapping umm on mr.user_meter_id  = umm.id
- join meter m on umm.meter_id  = m.id where mr.is_deleted =0`;
+  const query = ` select mr.reading_id, umm.user_id,ud.name ,m.meter_number,
+    mr.reading_value,mr.reading_date,b.billing_amount,b.is_paid from 
+    meter_reading mr join 
+    billing b ON mr.reading_id = b.meter_reading_id join 
+    user_meter_mapping umm ON mr.user_meter_id = umm.id
+join meter m ON umm.meter_id = m.id
+join user_details ud ON umm.user_id = ud.id  
+where mr.is_deleted = 0`;
   const result = await executeQuery(query);
   return result;
 };
@@ -115,12 +119,29 @@ const getreadingByIdFromDB = async (id) => {
   return result;
 };
 
+const getreadingForUpdate = async(id)=>{
+  const query = `select mr.reading_id,umm.user_id,umm.meter_id,m.meter_number,DATE_FORMAT(mr.reading_date, '%Y-%m-%d') as reading_date, mr.reading_value ,b.billing_amount,b.is_paid from 
+    meter_reading mr join billing b ON mr.reading_id = b.meter_reading_id join 
+    user_meter_mapping umm ON mr.user_meter_id = umm.id join meter m ON umm.meter_id = m.id
+join user_details ud ON umm.user_id = ud.id  where mr.is_deleted = 0 and mr.reading_id = ?`;
+const result = await executeQuery(query,[id]);
+return result;
+
+}
+
 
 const getMeterNumberFromId = async (id) => {
   const query = ` select id,meter_number from meter where id = ?`;
   const result = await executeQuery(query, [id]);
   return result;
 };
+
+const getMeterIdFromNumber = async(meter_number)=>{
+  const query = ` select id from meter where meter_number =?`;
+  const result = await executeQuery(query,[meter_number]);
+  return result;
+}
+
 
 const getSpecificMeterRecord = async (user_id, meter_id, reading_date) => {
   const query = `select umm.user_id ,m.meter_number,mr.reading_value,mr.reading_date,b.billing_amount,b.is_paid from meter_reading mr join billing b 
@@ -139,14 +160,16 @@ const getUserMapping = async (user_id, meter_id) => {
 const createBillingRecordInDB = async (
   meter_reading_id,
   billing_amount,
+  is_paid,
   email
 ) => {
-  const query = `insert into billing (meter_reading_id,billing_amount,created_by,updated_by)
-values (?,?,?,?)`;
+  const query = `insert into billing (meter_reading_id,billing_amount, is_paid,created_by,updated_by)
+values (?,?,?,?,?)`;
 
   const result = await executeQuery(query, [
     meter_reading_id,
     billing_amount,
+    is_paid,
     email,
     email,
   ]);
@@ -174,9 +197,9 @@ on mr.user_meter_id  = umm.id  where mr.reading_id  = ?`;
  return result;
 }
 
-const updateBillingRecordInDB = async(reading_value,updated_by,meter_reading_id)=>{
-   const query = `update billing  set billing_amount = ? ,updated_by = ? where meter_reading_id = ?`;
-   const result = await executeQuery(query,[reading_value,updated_by,meter_reading_id]);
+const updateBillingRecordInDB = async(reading_value,is_paid,updated_by,meter_reading_id)=>{
+   const query = `update billing  set billing_amount = ? ,is_paid = ?, updated_by = ? where meter_reading_id = ?`;
+   const result = await executeQuery(query,[reading_value,is_paid,updated_by,meter_reading_id]);
    return result;
 }
 
@@ -184,6 +207,17 @@ const getReadingByUserMeterId = async(id,user_meter_id)=>{
   const query = `select reading_date from meter_reading where user_meter_id = ? and reading_id !=id`;
   const result = await executeQuery(query,[user_meter_id,id]);
   return result;
+}
+const getCountMeterNumber = async(user_id)=>{
+   const query = `select COUNT(m.meter_number) AS meter_count
+FROM user_meter_mapping umm
+JOIN meter m ON umm.meter_id = m.id
+WHERE umm.user_id = ?
+  AND umm.is_deleted = 0
+  AND m.is_deleted = 0`;
+
+  const result = await executeQuery(query,[user_id]);
+  return result[0];
 }
 
 export {
@@ -200,6 +234,6 @@ export {
   getMeterNumberFromId,
   getSpecificMeterRecord,
   getUserMapping,
-  createBillingRecordInDB, 
-  getMeterRecordPerMonth,getUserMeterId,updateBillingRecordInDB,getReadingByUserMeterId
+  createBillingRecordInDB, getMeterIdFromNumber,getreadingForUpdate,
+  getMeterRecordPerMonth,getUserMeterId,updateBillingRecordInDB,getReadingByUserMeterId,getCountMeterNumber
 };

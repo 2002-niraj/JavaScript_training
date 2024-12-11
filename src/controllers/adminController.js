@@ -21,7 +21,7 @@ import {
   getSpecificMeterRecord,
   getUserMapping,
   getMeterRecordPerMonth,
-  updateBillingRecordInDB,
+  updateBillingRecordInDB,getMeterIdFromNumber,getCountMeterNumber,getreadingForUpdate
 } from "../models/adminModel.js";
 
 import {
@@ -31,7 +31,7 @@ import {
 } from "../models/userModel.js";
 
 import constant from "../constant/constant.js";
-const { REGISTER_SUCESS, USER_DETAILS_UPDATED, USER_DETAILS ,ROLE_CHANGED,  USER_DETAILS_DELETED} =
+const { REGISTER_SUCESS, USER_DETAILS_UPDATED, USER_DETAILS ,ROLE_CHANGED,  USER_DETAILS_DELETED,METER_RECORD_SUCESS} =
   constant.messages.success;
 
 const roles = constant.roles;
@@ -40,8 +40,8 @@ const {
   USER_NOT_FOUND,
   USER_DETAILS_NOT_UPDATED,
   PERMISSION_DENIED,
-  USER_DETAILS_NOT_DELETED,
-  ROLE_NOT_EXISTS,ROLE_NOT_CHANGED,METER_RECORD_NOT_FOUND,METER_NOT_FOUND
+  USER_DETAILS_NOT_DELETED,METER_RECORD_EXISTS,
+  ROLE_NOT_EXISTS,ROLE_NOT_CHANGED,METER_RECORD_NOT_FOUND,METER_NOT_FOUND,METER_NOT_ALLOCATE_USER,METER_RECORD_EXISTS_MONTH
 } = constant.messages.error;
 
 const { SUCCESS, CREATED } = constant.codes.success;
@@ -71,16 +71,20 @@ const createUser = async (req, res) => {
     const created_by = req.user.email;
     const userDetails = req.body;
     const { email } = userDetails;
+ 
 
-    //const {body: userDetails} =req;
     const userExits = await getUserDetails(email);
-    if (userExits.length) {
+    if (userExits) {
       throw errorHandler(USER_ALREADY_EXISTS, CONFLICT);
     }
+
     const registerUserByAdmin = await registerUserAndCreateMeter(
       userDetails,
-      created_by,true
+      created_by,
+      true
     );
+
+    
 
     res.status(CREATED).json({
       message: REGISTER_SUCESS,
@@ -88,6 +92,7 @@ const createUser = async (req, res) => {
       user: registerUserByAdmin,
     });
   } catch (error) {
+    console.error('Error in creating user:', error);
     sendErrorResponse(res, error);
   }
 };
@@ -100,9 +105,16 @@ const createMeter = async (req, res) => {
 
     isVaildId(user_id);
 
+    const limitExceed = await getCountMeterNumber(user_id);
+   // console.log(limitExceed.meter_count);
+
+    if(limitExceed.meter_count>5){
+      throw errorHandler("Limit exceeded: only 5 meter numbers are allowed for a single user",CONFLICT)
+    }
+
     const userExit = await getUserByIdFromDB(user_id);
-    if (!userExit.length) {
-      throw errorHandler("user not exits, check again!", NOT_FOUND);
+    if (!userExit) {
+      throw errorHandler("user not exists, check again!", NOT_FOUND);
     }
 
     const meter_number = "M" + [Date.now() + Math.floor(Math.random() * 10)];
@@ -130,13 +142,14 @@ const createMeter = async (req, res) => {
     }
 
     res.status(CREATED).json({
-      message: "meter number created sucessfully",
-      statusCode: SUCCESS,
+      message: "meter number created sucessfully!",
+      statusCode: CREATED,
       userData: {
         ...userExit,
         meter_number: meter_number,
       },
     });
+
   } catch (error) {
     sendErrorResponse(res, error);
   }
@@ -224,7 +237,7 @@ const changeUserRole = async (req, res) => {
 
     const userDetails = await getUserByIdFromDB(id);
 
-    if (!userDetails.length) {
+    if (!userDetails) {
       throw errorHandler(USER_NOT_FOUND, NOT_FOUND);
     }
 
@@ -248,62 +261,57 @@ const changeUserRole = async (req, res) => {
 const getAllMeterRecord = async (req, res) => {
   try {
     const meterRecords = await getMeterRecordFromDB();
-    res.status(SUCCESS).json(meterRecords);
+    res.status(SUCCESS).json({
+      meterRecords,statusCode:SUCCESS
+    });
   } catch (error) {
     sendErrorResponse(res, error);
   }
 };
 
+
 const createMeterRecord = async (req, res) => {
   try {
     const created_by = req.user.email;
-    const { user_id, meter_id, reading_date } = req.body;
+    const { user_id, meter_number, reading_date, is_paid } = req.body;
 
     const userExists = await getUserByIdFromDB(user_id);
-    if (!userExists.length) {
+    if (!userExists) {
       throw errorHandler(USER_NOT_FOUND, NOT_FOUND);
     }
 
-    const meterExists = await getMeterNumberFromId(meter_id);
+    const meterExists = await getMeterIdFromNumber(meter_number); 
     if (!meterExists.length) {
       throw errorHandler(METER_NOT_FOUND, NOT_FOUND);
     }
+
+    const meter_id = meterExists[0].id; 
 
     const user_meterExists = await getUserMapping(user_id, meter_id);
     if (!user_meterExists.length) {
       throw errorHandler(METER_NOT_ALLOCATE_USER, NOT_FOUND);
     }
 
-    const readingExists = await getSpecificMeterRecord(
-      user_id,
-      meter_id,
-      reading_date
-    );
+    const readingExists = await getSpecificMeterRecord(user_id, meter_id, reading_date);
     if (readingExists.length) {
       throw errorHandler(METER_RECORD_EXISTS, CONFLICT);
     }
 
-    const exitingReading = await getMeterRecordPerMonth(
-      user_id,
-      meter_id,
-      reading_date
-    );
+    const exitingReading = await getMeterRecordPerMonth(user_id, meter_id, reading_date);
     if (exitingReading.length) {
       throw errorHandler(METER_RECORD_EXISTS_MONTH, CONFLICT);
     }
 
     const meterRecord = req.body;
+    meterRecord.meter_id = meter_id;  
+    meterRecord.is_paid = is_paid;
     const user_meter_id = user_meterExists[0].id;
 
-    const meter_reading = await createMeterBillingRecord(
-      meterRecord,
-      user_meter_id,
-      created_by
-    );
+    const meter_reading = await createMeterBillingRecord(meterRecord, user_meter_id, created_by);
 
     res.status(SUCCESS).json({
       message: METER_RECORD_SUCESS,
-      statusCode:SUCCESS,
+      statusCode: SUCCESS,
       meterRecord: meter_reading,
     });
   } catch (error) {
@@ -340,22 +348,22 @@ const fileHandler = async (req, res) => {
 
     let lineNumber = 0;
     for (const meterRecord of meterRecords) {
-      const { user_id, meter_id, reading_value, reading_date } = meterRecord;
+      const { user_id, meter_number, reading_value, reading_date, is_paid } = meterRecord;
 
       lineNumber++;
       const userExists = await getUserByIdFromDB(user_id);
-      if (!userExists.length) {
+      if (!userExists) {
         return res.status(404).json({
           message: `User does not exist error at file line ${lineNumber}`,
         });
       }
 
-      const meterExists = await getMeterNumberFromId(meter_id);
-      if (!meterExists.length) {
-        return res.status(404).json({
-          message: `Meter does not exist error at file line ${lineNumber}`,
-        });
-      }
+      const meterExists = await getMeterIdFromNumber(meter_number); 
+    if (!meterExists.length) {
+      throw errorHandler(METER_NOT_FOUND, NOT_FOUND);
+    }
+
+    const meter_id = meterExists[0].id; 
 
       const userMeterExists = await getUserMapping(user_id, meter_id);
       if (!userMeterExists.length) {
@@ -412,42 +420,66 @@ const fileHandler = async (req, res) => {
 
 const updateMeterRecord = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const { reading_value, reading_date } = req.body;
-    const updated_by = req.user.email;
-
+    const { id } = req.params; 
+    const { reading_value, reading_date, billing_amount, is_paid="No" } = req.body; 
+    const updated_by = req.user.email; 
+     
     isVaildId(id);
 
-    const meterReadingExits = await getreadingByIdFromDB(id);
+    const meterReadingExits = await getreadingForUpdate(id);
     if (!meterReadingExits.length) {
-      throw errorHandler(METER_RECORD_NOT_FOUND, NOT_FOUND);
+      throw errorHandler("Meter record not found", NOT_FOUND);
     }
 
-    const updateMeterRecord = await updateMeterRecordInDB(
+    const existingMeterRecord = meterReadingExits[0];
+    const existingReadingValue = existingMeterRecord.reading_value;
+    const existingReadingDate = new Date(existingMeterRecord.reading_date).toISOString().split('T')[0];
+    const existingBillingAmount = existingMeterRecord.billing_amount;
+    const existingIsPaid = existingMeterRecord.is_paid;
+    const user_id = existingMeterRecord.user_id; 
+    const meter_id = existingMeterRecord.meter_id;
+
+    if (
+      reading_value == existingReadingValue &&
+      reading_date == existingReadingDate &&
+      billing_amount == existingBillingAmount &&
+      is_paid == existingIsPaid
+    ) {
+
+      return res.status(SUCCESS).json({
+        message: "No changes detected",
+        statusCode: SUCCESS
+      });
+    }
+
+    const updatedMeterRecord = await updateMeterRecordInDB(
       reading_value,
       reading_date,
       updated_by,
       id
     );
 
-    if (updateMeterRecord.affectedRows > 0) {
+    if (updatedMeterRecord.affectedRows > 0) {
       const updateBillingRecord = await updateBillingRecordInDB(
-        reading_value * 5,
+        billing_amount, 
+        is_paid ,
         updated_by,
         id
       );
 
       if (updateBillingRecord.affectedRows > 0) {
-        res
-          .status(SUCCESS)
-          .json({ message:  METER_RECORD_UPDATED,statusCode:SUCCESS });
+        return res.status(SUCCESS).json({
+          message: "Meter record updated successfully",
+          statusCode: SUCCESS
+        });
+      } else {
+        throw errorHandler("Error updating the billing record", INTERNAL_SERVER_ERROR);
       }
     } else {
-      throw errorHandler("Meter record not updated", INTERNAL_SERVER_ERROR);
+      throw errorHandler("Meter record not updated", INTERNAL_SERVER_ERROR); 
     }
   } catch (error) {
-     sendErrorResponse(res,error)
+    sendErrorResponse(res, error); 
   }
 };
 

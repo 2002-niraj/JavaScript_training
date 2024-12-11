@@ -7,9 +7,9 @@ const createMeterRecordSchema = joi.object({
       "number.base": "user_id must be vaild number"
     }),
 
-  meter_id:joi.number().integer().required()
+  meter_number:joi.string().required()
   .messages({
-    "number.base": "meter_id must be vaild number"
+    "number.base": "meter_number must be vaild"
   })
  ,
   reading_value: joi.number().greater(100).required().messages({
@@ -19,6 +19,10 @@ const createMeterRecordSchema = joi.object({
   reading_date:joi.date().required().messages({
           "string.empty": "date is required",
           "date.base": "date must be a valid.",
+  }),
+
+  is_paid:joi.string().min(2).messages({
+    
   })
   
 
@@ -35,7 +39,17 @@ reading_date:joi.date().required().messages({
         "string.empty": "date is required",
         "date.base": "date must be a valid."
 
+}),
+
+billing_amount : joi.number().required().messages({
+
+}),
+
+is_paid:joi.string().min(2).messages({
+    
 })
+
+
 
 });
 
@@ -44,7 +58,7 @@ const vaildateCreateMeterRecord = (req, res, next) => {
 
   if (error) {
     
-    return res.status(400).send({ message: error.details[0].message });
+    return res.status(422).send({ message: error.details[0].message,statusCode:422 });
   }
   next();
 };
@@ -62,7 +76,7 @@ const vaildateUpdateMeterRecord = (req, res, next) => {
 
   if (error) {
  
-    return res.status(400).send({ message: error.details[0].message });
+    return res.status(422).send({ message: error.details[0].message ,statusCode:422 });
   }
   next();
 };

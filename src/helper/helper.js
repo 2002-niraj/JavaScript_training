@@ -37,32 +37,30 @@ const isVaildId = (id) => {
   }
 };
 
-const registerUserAndCreateMeter = async (userDetails, created_by,isAdmin = false) => {
+const registerUserAndCreateMeter = async (userDetails, created_by, isAdmin = false) => {
+  const { name, contact, password } = userDetails;
   
-  const { name,contact,password } = userDetails;
-   
   let finalPassword;
-  if(isAdmin){
+  if (isAdmin) {
     finalPassword = name.substring(0, 3).toLowerCase() + contact.slice(-3);
+  } else {
+    finalPassword = password;
   }
-  else{
-   finalPassword = password;
-  }
+  
   const hashedPassword = await bcrypt.hash(finalPassword, 10);
-  const registerUser = await registerUserInDB(
-    userDetails,
-    hashedPassword,
-    created_by
-  );
 
+  const registerUser = await registerUserInDB(userDetails, hashedPassword, created_by);
   if (!registerUser) {
+
     throw errorHandler(ERROR_IN_REGISTER, INTERNAL_SERVER_ERROR);
   }
 
   const meter_number = "M" + [Date.now() + Math.floor(Math.random() * 10)];
+  
 
   const createMeter = await createMeterInDB(meter_number, created_by);
   if (!createMeter) {
+
     throw errorHandler(ERROR_IN_METER_RECORD, INTERNAL_SERVER_ERROR);
   }
 
@@ -71,15 +69,16 @@ const registerUserAndCreateMeter = async (userDetails, created_by,isAdmin = fals
 
   const user_meter_map = await userMeterMapping(userId, meter_id, created_by);
   if (!user_meter_map) {
+ 
     throw errorHandler(ERROR_IN_USER_METER_MAP, INTERNAL_SERVER_ERROR);
   }
 
   return {
     name,
-    email,
+    email: userDetails.email,
     contact,
-    city,
-    address,
+    city: userDetails.city,
+    address: userDetails.address,
     meter_number,
   };
 };
@@ -89,7 +88,11 @@ const createMeterBillingRecord = async (
   user_meter_id,
   created_by
 ) => {
-  const { reading_value, reading_date } = meterRecord;
+  const { reading_value, reading_date,is_paid = "No" } = meterRecord;
+
+  const RATE_PER_UNIT = 5;
+
+  const billing_amount = reading_value * RATE_PER_UNIT;
 
   const createMeterRecord = await createMeterRecordInDB(
     user_meter_id,
@@ -105,7 +108,8 @@ const createMeterBillingRecord = async (
 
   const createBillingRecord = await createBillingRecordInDB(
     meter_reading_id,
-    reading_value * 5,
+    billing_amount,
+    is_paid,
     created_by
   );
 
@@ -136,13 +140,14 @@ const streamReader = async (stream) => {
         .join(" ")
         .split(/\s+/)
         .map((value) => value.trim());
-      const [user_id, meter_id, reading_value, reading_date] = values;
+      const [user_id, meter_number, reading_value, reading_date,is_paid="No"] = values;
 
       meterRecords.push({
         user_id: parseInt(user_id, 10),
-        meter_id: parseInt(meter_id, 10),
+        meter_number,
         reading_value: parseFloat(reading_value),
         reading_date,
+        is_paid
       });
     });
 
@@ -156,9 +161,9 @@ const errorHandler = (message, statusCode) => {
 };
 
 const sendErrorResponse = (res, error) => {
-  res.status(error.statusCode).send({
+  res.status(error.statusCode || 500).send({
     message: error.message || "unknown error",
-    statusCode:error.statusCode || 500
+    statusCode:error.statusCode
   });
 };
 

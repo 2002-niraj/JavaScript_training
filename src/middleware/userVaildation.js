@@ -42,6 +42,9 @@ const createUserSchema = joi.object({
   }),
 });
 
+
+
+
 const updateUserSchema = joi.object({
   name: joi
     .string()
@@ -89,6 +92,8 @@ const vaildateCreateUser = (req, res, next) => {
   }
   next();
 };
+
+
 
 const vaildateUpdateUser = (req, res, next) => {
   const { error } = updateUserSchema.validate(req.body);
