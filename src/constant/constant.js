@@ -43,7 +43,17 @@ const constants = {
       METER_NOT_ALLOCATE_USER: 'This meter is not allocated to the current user',
       METER_RECORD_EXISTS: 'Meter record for this date already exists',
       METER_RECORD_EXISTS_MONTH: 'Meter record for this meter already exists for this month',
-      "METER_RECORD_NOT_FOUND":"Meter record not found"
+      METER_RECORD_NOT_FOUND:"Meter record not found",
+      LIMIT_EXCEED:"Limit exceeded: only 5 meter numbers are allowed for a single user",
+      USER_NOT_EXISTS:"User not exists, check again!",
+      ERROR_CREATING_RECORD:"Error in creating meter record!",
+      ERROR_CREATING_USER_METER_MAP:"Error in creating user_meter_map",
+      ERROR_UPDATEDING_METER_RECORD:"Error IN updating the billing record",
+      METER_NOT_UPDATED:"Meter record not updated",
+      METER_NOT_DELETED:"Meter record not deleted",
+      INVAILD_ID:"Invalid ID:ID must be positive integer",
+      ERROR_CREATING_BILLING:"Error in creating billing record"
+
     },
     success: {
       REGISTER_SUCESS: 'User Registered Successfully',
@@ -55,7 +65,11 @@ const constants = {
       USER_DETAILS_DELETED: 'User details deleted successfully',
       FILE_PROCESSED: 'File processed successfully',
       METER_RECORD_SUCESS: 'Meter record created successfully!',
-      USER_DETAILS:"User details retrieved successfully"
+      USER_DETAILS:"User details retrieved successfully",
+      METER_CREATED:"Meter number created sucessfully!",
+      NO_CHANGES_DETECTED:"No changes detected!",
+      METER_UPDATED:"Meter record updated successfully",
+      METER_DELETED:"MeterRecord deleted sucessfully"
     }
   },
 

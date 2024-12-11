@@ -29,7 +29,7 @@ const {SUPERADMIN,ADMIN} = constant.roles
 
 import upload from "../config/fileUpload.js";
 import { vaildateCreateUser,vaildateUpdateUser } from '../middleware/userVaildation.js';
-import { vaildateCreateMeterRecord ,vaildateUpdateMeterRecord} from '../middleware/meterRecordVaildation.js'
+import { validateCreateMeterRecord, validateUpdateMeterRecord} from '../middleware/meterRecordVaildation.js'
 
 import verifyTokenAndCheckAccess from '../middleware/verifyTokenAndCheckAccess.js';
 
@@ -44,8 +44,8 @@ adminRoute.patch(CHANGE_ROLE, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), cha
 adminRoute.post(CREATE_METER,verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), createMeter)
 adminRoute.get(GET_ALL_METERRECORD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), getAllMeterRecord);
 
-adminRoute.post(CREATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), vaildateCreateMeterRecord, createMeterRecord);
-adminRoute.put(UPDATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), vaildateUpdateMeterRecord, updateMeterRecord);
+adminRoute.post(CREATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),validateCreateMeterRecord, createMeterRecord);
+adminRoute.put(UPDATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),  validateUpdateMeterRecord, updateMeterRecord);
 adminRoute.patch(DELETE_METERRECORD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), deleteMeterRecord);
 adminRoute.post(FILE_UPLOAD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),upload.single('file'),fileHandler)
 
