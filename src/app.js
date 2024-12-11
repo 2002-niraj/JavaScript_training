@@ -12,8 +12,7 @@ const app = express();
 app.use(cors("*"));
 app.use(express.json());
 
-
-app.use(userRoute);
-app.use(adminRoute);
+userRoute(app);
+adminRoute(app);
 
 export default app;
