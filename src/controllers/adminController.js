@@ -23,7 +23,7 @@ import {
   updateBillingRecordInDB,
   getMeterIdFromNumber,
   getCountMeterNumber,
-  getreadingForUpdate,
+  getreadingForUpdate,getRecordSameMonth
 } from "../models/adminModel.js";
 
 import {
@@ -58,7 +58,7 @@ const {
   ROLE_NOT_EXISTS,
   ROLE_NOT_CHANGED,
   METER_RECORD_NOT_FOUND,
-  METER_NOT_FOUND,
+  METER_NOT_FOUND,DUPLICATE_MONTH,
   METER_NOT_ALLOCATE_USER, ERROR_UPDATEDING_METER_RECORD,METER_NOT_UPDATED, METER_NOT_DELETED,
   METER_RECORD_EXISTS_MONTH,USER_NOT_EXISTS, ERROR_CREATING_RECORD ,ERROR_CREATING_USER_METER_MAP
 } = constant.messages.error;
@@ -470,9 +470,7 @@ const updateMeterRecord = async (req, res) => {
 
     const existingMeterRecord = meterReadingExits[0];
     const existingReadingValue = existingMeterRecord.reading_value;
-    const existingReadingDate = new Date(existingMeterRecord.reading_date)
-      .toISOString()
-      .split("T")[0];
+    const existingReadingDate = existingMeterRecord.reading_date
     const existingBillingAmount = existingMeterRecord.billing_amount;
     const existingIsPaid = existingMeterRecord.is_paid;
     const user_id = existingMeterRecord.user_id;
@@ -489,6 +487,15 @@ const updateMeterRecord = async (req, res) => {
         statusCode: SUCCESS,
       });
     }
+
+    const existingRecordMonth = await getRecordSameMonth(user_id,meter_id,reading_date,id);
+    if(existingRecordMonth.length){
+      return res.status(CONFLICT).json({
+        message:DUPLICATE_MONTH,
+        statusbar:CONFLICT
+      });
+    }
+
 
     const updatedMeterRecord = await updateMeterRecordInDB(
       reading_value,

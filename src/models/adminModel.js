@@ -60,13 +60,10 @@ const changeRoleInDB = async (id, role_id) => {
 
 
 const getMeterRecordFromDB = async () => {
-  const query = ` select mr.reading_id, umm.user_id,ud.name ,m.meter_number,
-    mr.reading_value,mr.reading_date,b.billing_amount,b.is_paid from 
-    meter_reading mr join 
-    billing b ON mr.reading_id = b.meter_reading_id join 
-    user_meter_mapping umm ON mr.user_meter_id = umm.id
-join meter m ON umm.meter_id = m.id
-join user_details ud ON umm.user_id = ud.id  
+  const query = `select mr.reading_id, umm.user_id,ud.name ,m.meter_number,
+    mr.reading_value,DATE_FORMAT(mr.reading_date,'%Y-%m-%d') as reading_date ,b.billing_amount,b.is_paid from 
+    meter_reading mr join billing b ON mr.reading_id = b.meter_reading_id join 
+    user_meter_mapping umm ON mr.user_meter_id = umm.id join meter m ON umm.meter_id = m.id join user_details ud ON umm.user_id = ud.id  
 where mr.is_deleted = 0`;
   const result = await executeQuery(query);
   return result;
@@ -220,6 +217,14 @@ WHERE umm.user_id = ?
   return result[0];
 }
 
+const getRecordSameMonth = async(user_id,meter_id,reading_date,id)=>{
+  const query = `select mr.reading_id,umm.user_id,umm.meter_id,m.meter_number,DATE_FORMAT(mr.reading_date, '%Y-%m-%d') as reading_date, mr.reading_value ,b.billing_amount,b.is_paid from 
+    meter_reading mr join billing b ON mr.reading_id = b.meter_reading_id join user_meter_mapping umm ON mr.user_meter_id = umm.id join meter m ON umm.meter_id = m.id
+join user_details ud ON umm.user_id = ud.id  where mr.is_deleted = 0 and umm.user_id = ? and umm.meter_id = ? and date_format(reading_date,'%Y-%m') = date_format(?,'%Y-%m') and  mr.reading_id != ?`;
+  const result = await executeQuery(query,[user_id,meter_id,reading_date,id]);
+  return result;
+}
+
 export {
   getAllUserFromDB,
   updateUserInDB,
@@ -234,6 +239,6 @@ export {
   getMeterNumberFromId,
   getSpecificMeterRecord,
   getUserMapping,
-  createBillingRecordInDB, getMeterIdFromNumber,getreadingForUpdate,
+  createBillingRecordInDB, getMeterIdFromNumber,getreadingForUpdate,getRecordSameMonth,
   getMeterRecordPerMonth,getUserMeterId,updateBillingRecordInDB,getReadingByUserMeterId,getCountMeterNumber
 };
