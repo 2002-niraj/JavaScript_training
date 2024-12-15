@@ -17,7 +17,7 @@ const createUserSchema = joi.object({
     "string.empty": "email is required",
   }),
 
-  password: joi.string().min(3).max(250).messages({
+  password: joi.string().min(5).max(250).messages({
     "string.max": "passoword character limit exceeded",
     "string.min": "password length must be 3 character long",
   }),

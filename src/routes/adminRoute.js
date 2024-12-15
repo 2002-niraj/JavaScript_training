@@ -1,3 +1,4 @@
+import express from "express";
 import {
   getAllusers,
   createUser,
@@ -7,7 +8,7 @@ import {
   getAllMeterRecord,
   createMeterRecord,
   updateMeterRecord,
-  deleteMeterRecord,fileHandler,createMeter
+  deleteMeterRecord,fileHandler,createMeter,getAllMeter
 } from "../controllers/adminController.js";
 
 import constant from "../constant/constant.js";
@@ -21,7 +22,7 @@ const {
   CREATE_METERRECORD,
   UPDATE_METERRECORD,
   DELETE_METERRECORD,
-  CREATE_METER,FILE_UPLOAD
+  CREATE_METER,FILE_UPLOAD,
 } = constant.routes;
 
 const {SUPERADMIN,ADMIN} = constant.roles
@@ -32,21 +33,22 @@ import { validateCreateMeterRecord, validateUpdateMeterRecord} from '../middlewa
 
 import verifyTokenAndCheckAccess from '../middleware/verifyTokenAndCheckAccess.js';
 
-const adminRoute = (app)=>{
-  app.get(GET_ALL_USERS, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), getAllusers);
-  app.post(CREATE_USER, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), vaildateCreateUser, createUser);
-  app.put(UPDATE_USER,verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),vaildateUpdateUser, updateUser);
-  app.patch(DELETE_USER, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), deleteUser);
-  app.patch(CHANGE_ROLE, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), changeUserRole);
+const adminRoute = express.Router();
 
-  app.post(CREATE_METER,verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), createMeter)
-  app.get(GET_ALL_METERRECORD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), getAllMeterRecord);
+adminRoute.get(GET_ALL_USERS, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), getAllusers);
+adminRoute.post(CREATE_USER, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), vaildateCreateUser, createUser);
+adminRoute.put(UPDATE_USER,verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),vaildateUpdateUser, updateUser);
+adminRoute.patch(DELETE_USER, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), deleteUser);
+adminRoute.patch(CHANGE_ROLE, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), changeUserRole);
 
-  app.post(CREATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),validateCreateMeterRecord, createMeterRecord);
-  app.put(UPDATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),  validateUpdateMeterRecord, updateMeterRecord);
-  app.patch(DELETE_METERRECORD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), deleteMeterRecord);
-  app.post(FILE_UPLOAD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),upload.single('file'),fileHandler);
-}
+adminRoute.post(CREATE_METER,verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), createMeter);
+adminRoute.get('/meter',verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),getAllMeter)
+adminRoute.get(GET_ALL_METERRECORD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), getAllMeterRecord);
+
+adminRoute.post(CREATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), validateCreateMeterRecord, createMeterRecord);
+adminRoute.put(UPDATE_METERRECORD,  verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), validateUpdateMeterRecord, updateMeterRecord);
+adminRoute.patch(DELETE_METERRECORD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]), deleteMeterRecord);
+adminRoute.post(FILE_UPLOAD, verifyTokenAndCheckAccess([SUPERADMIN,ADMIN]),upload.single('file'),fileHandler)
 
 export default adminRoute;
 

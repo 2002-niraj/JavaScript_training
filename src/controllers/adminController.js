@@ -11,7 +11,7 @@ import {
   getAllUserFromDB,
   updateUserInDB,
   getUserByIdFromDB,
-  deleteEventFromDB,
+  deleteUserFromDB,
   changeRoleInDB,
   getMeterRecordFromDB,
   updateMeterRecordInDB,
@@ -87,6 +87,7 @@ const getAllusers = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
+    console.log("hi");
     const created_by = req.user.email;
     const userDetails = req.body;
     const { email } = userDetails;
@@ -95,6 +96,7 @@ const createUser = async (req, res) => {
     if (userExits) {
       throw errorHandler(USER_ALREADY_EXISTS, CONFLICT);
     }
+    console.log(userExists);
 
     const registerUserByAdmin = await registerUserAndCreateMeter(
       userDetails,
@@ -228,7 +230,7 @@ const deleteUser = async (req, res) => {
       throw errorHandler(PERMISSION_DENIED, FORBIDDEN);
     }
 
-    const userData = await deleteEventFromDB(id);
+    const userData = await deleteUserFromDB(id);
 
     if (userData.affectedRows > 0) {
       res
@@ -559,6 +561,10 @@ const deleteMeterRecord = async (req, res) => {
   }
 };
 
+const getAllMeter = async(req,res)=>{
+
+}
+
 export {
   getAllusers,
   createUser,
@@ -571,4 +577,5 @@ export {
   deleteMeterRecord,
   fileHandler,
   createMeter,
+  getAllMeter
 };

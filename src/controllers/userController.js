@@ -38,7 +38,6 @@ const registerUser = async (req, res) => {
     if (userExits.length) {
       throw errorHandler(USER_ALREADY_EXISTS, CONFLICT);
     }
-
     const registerUser = await registerUserAndCreateMeter(userDetails, email);
 
     res.status(CREATED).json({

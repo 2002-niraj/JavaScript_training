@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken';
 import { errorHandler, sendErrorResponse } from "../helper/helper.js"; 
 import constant from "../constant/constant.js"; 
 
-
 const { UNAUTHORIZED, FORBIDDEN } = constant.codes.error;
 const { TOKEN_NOT_EXIST, INVALID_TOKEN, ACCESS_DENIED } = constant.middlewareConstant;
 
@@ -29,8 +28,6 @@ const verifyTokenAndCheckAccess = (allowedRoles) => {
             message: ACCESS_DENIED,
           });
         }
-
-    
         next();
       });
     } catch (error) {

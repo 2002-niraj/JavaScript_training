@@ -43,7 +43,7 @@ const getUserByIdFromDB = async (id) => {
   return result[0];
 };
 
-const deleteEventFromDB = async (id) => {
+const deleteUserFromDB = async (id) => {
   const query = `UPDATE user_details
        SET is_deleted = 1
        WHERE id = ?`;
@@ -56,8 +56,6 @@ const changeRoleInDB = async (id, role_id) => {
   const result = await executeQuery(query, [role_id, id]);
   return result;
 };
-
-
 
 const getMeterRecordFromDB = async () => {
   const query = `select mr.reading_id, umm.user_id,ud.name ,m.meter_number,
@@ -126,19 +124,11 @@ return result;
 
 }
 
-
-const getMeterNumberFromId = async (id) => {
-  const query = ` select id,meter_number from meter where id = ?`;
-  const result = await executeQuery(query, [id]);
-  return result;
-};
-
 const getMeterIdFromNumber = async(meter_number)=>{
   const query = ` select id from meter where meter_number =?`;
   const result = await executeQuery(query,[meter_number]);
   return result;
 }
-
 
 const getSpecificMeterRecord = async (user_id, meter_id, reading_date) => {
   const query = `select umm.user_id ,m.meter_number,mr.reading_value,mr.reading_date,b.billing_amount,b.is_paid from meter_reading mr join billing b 
@@ -184,16 +174,6 @@ const getMeterRecordPerMonth = async (user_id,meter_id,reading_date) => {
   return result;
 };
 
-
-
-const getUserMeterId = async(id)=>{
-
- const query = `select umm.meter_id,umm.user_id from meter_reading mr join user_meter_mapping umm 
-on mr.user_meter_id  = umm.id  where mr.reading_id  = ?`;
- const result = await executeQuery(query,[id]);
- return result;
-}
-
 const updateBillingRecordInDB = async(reading_value,is_paid,updated_by,meter_reading_id)=>{
    const query = `update billing  set billing_amount = ? ,is_paid = ?, updated_by = ? where meter_reading_id = ?`;
    const result = await executeQuery(query,[reading_value,is_paid,updated_by,meter_reading_id]);
@@ -205,6 +185,7 @@ const getReadingByUserMeterId = async(id,user_meter_id)=>{
   const result = await executeQuery(query,[user_meter_id,id]);
   return result;
 }
+
 const getCountMeterNumber = async(user_id)=>{
    const query = `select COUNT(m.meter_number) AS meter_count
 FROM user_meter_mapping umm
@@ -229,16 +210,15 @@ export {
   getAllUserFromDB,
   updateUserInDB,
   getUserByIdFromDB,
-  deleteEventFromDB,
+  deleteUserFromDB,
   changeRoleInDB,
   getMeterRecordFromDB,
   createMeterRecordInDB,
   updateMeterRecordInDB,
   deleteReadingFromDB,
   getreadingByIdFromDB,
-  getMeterNumberFromId,
   getSpecificMeterRecord,
   getUserMapping,
   createBillingRecordInDB, getMeterIdFromNumber,getreadingForUpdate,getRecordSameMonth,
-  getMeterRecordPerMonth,getUserMeterId,updateBillingRecordInDB,getReadingByUserMeterId,getCountMeterNumber
+  getMeterRecordPerMonth,updateBillingRecordInDB,getReadingByUserMeterId,getCountMeterNumber
 };

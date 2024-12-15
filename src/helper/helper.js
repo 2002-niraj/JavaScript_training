@@ -83,13 +83,10 @@ const registerUserAndCreateMeter = async (
   }
 
   return {
-    name,
-    email: userDetails.email,
-    contact,
-    city: userDetails.city,
-    address: userDetails.address,
+    userDetails,
     meter_number,
   };
+
 };
 
 const createMeterBillingRecord = async (
