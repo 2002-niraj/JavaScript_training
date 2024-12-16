@@ -87,16 +87,14 @@ const getAllusers = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    console.log("hi");
     const created_by = req.user.email;
     const userDetails = req.body;
     const { email } = userDetails;
 
     const userExits = await getUserDetails(email);
-    if (userExits) {
+    if (userExits.length) {
       throw errorHandler(USER_ALREADY_EXISTS, CONFLICT);
     }
-    console.log(userExists);
 
     const registerUserByAdmin = await registerUserAndCreateMeter(
       userDetails,
